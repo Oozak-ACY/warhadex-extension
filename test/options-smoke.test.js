@@ -45,7 +45,7 @@ function patchNamedFormAccess(doc) {
   };
 }
 
-async function setup({ stored = {}, permissionGranted = true, sendMessage } = {}) {
+async function setup({ stored = {}, permissionGranted = true, permissionThrows = false, sendMessage } = {}) {
   const dom = new JSDOM(`<!doctype html><body>${FORM_HTML}</body>`, { url: 'https://example.com/options.html' });
   patchNamedFormAccess(dom.window.document);
   globalThis.document = dom.window.document;
@@ -59,6 +59,7 @@ async function setup({ stored = {}, permissionGranted = true, sendMessage } = {}
   const permissionCalls = [];
   browserStub.permissions.request = async (request) => {
     permissionCalls.push(request);
+    if (permissionThrows) throw new Error('motif non declare dans optional_host_permissions');
     return permissionGranted;
   };
 
@@ -135,6 +136,38 @@ test('permission refusee laisse un message d erreur et n enregistre rien', async
   assert.equal(permissionCalls.length, 1);
   assert.deepEqual(setCalls, []);
   assert.equal(etat.dataset.erreur, 'true');
+});
+
+// Regression: un motif de permission d hote ne doit jamais porter de port. Le
+// serveur mock documente dans le README est sur http://127.0.0.1:8787 ; un motif
+// avec port est refuse par Firefox et non portable ailleurs.
+test('le motif de permission ignore le port de l adresse saisie', async () => {
+  const { doc, form, field, etat, setCalls, permissionCalls } = await setup();
+
+  field('apiBaseUrl').value = 'http://127.0.0.1:8787';
+  field('cacheTtlDays').value = '7';
+  submit(doc, form);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.deepEqual(permissionCalls, [{ origins: ['http://127.0.0.1/*'] }]);
+  assert.equal(setCalls.length, 1, 'les reglages doivent bien etre enregistres');
+  assert.equal(etat.textContent, 'Reglages enregistres');
+});
+
+// Regression: un rejet de permissions.request (motif non couvert par
+// optional_host_permissions) doit produire un message, pas un rejet non gere
+// qui laisse le bouton Enregistrer sans effet observable.
+test('un rejet de permissions.request affiche une erreur et n enregistre rien', async () => {
+  const { doc, form, field, etat, setCalls, permissionCalls } = await setup({ permissionThrows: true });
+
+  field('apiBaseUrl').value = 'http://192.168.1.10:8787';
+  submit(doc, form);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(permissionCalls.length, 1);
+  assert.deepEqual(setCalls, [], 'rien ne doit etre enregistre apres un rejet');
+  assert.equal(etat.dataset.erreur, 'true');
+  assert.match(etat.textContent, /http:\/\/192\.168\.1\.10\/\*/, 'le message doit nommer le motif refuse');
 });
 
 test('url invalide affiche une erreur sans demander de permission', async () => {

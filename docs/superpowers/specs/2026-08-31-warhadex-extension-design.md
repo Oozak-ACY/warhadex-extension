@@ -208,9 +208,16 @@ n'est jamais exposee au content script ni a la page hote.
 Source unique. Un script de build assemble trois repertoires de distribution en
 substituant le manifeste.
 
+Socles de version : Chrome 111 et superieur, Firefox 109 et superieur,
+Safari 16.4 et superieur. Le socle Firefox est impose par Manifest V3
+lui-meme, supporte a partir de Firefox 109 ; l'`import()` dynamique en
+content script, disponible des Firefox 101, est une contrainte reelle mais
+moins haute, donc non determinante.
+
 - Chrome et derives Chromium : `background.service_worker`, MV3 natif.
 - Firefox : `background.scripts` avec `type: module`, plus
-  `browser_specific_settings.gecko.id`, requis pour la publication.
+  `browser_specific_settings.gecko.id`, requis pour la publication, et
+  `strict_min_version` a `109.0`.
 - Safari 16.4 et superieur : meme manifeste que Chrome, puis conversion en
   projet Xcode via `xcrun safari-web-extension-converter`. Cette etape exige
   macOS et n'est pas automatisable depuis ce depot ; elle est documentee dans le

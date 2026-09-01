@@ -28,6 +28,11 @@ Node 20 ou superieur pour le build et les tests. Aucune autre dependance
 n'est necessaire pour developper l'extension (pas de bundler, pas de
 dependance runtime).
 
+Cote navigateur, l'extension vise Manifest V3 : Chrome 111 ou superieur,
+Firefox 109 ou superieur (version a partir de laquelle Gecko prend en charge
+Manifest V3, et valeur declaree en `strict_min_version`), Safari 16.4 ou
+superieur.
+
 ## Structure du projet
 
 - `src/content` : detection du personnage sur la page produit (aucun acces
@@ -96,6 +101,13 @@ L'extension ne fonctionne pas tant qu'elle n'a pas d'API a interroger.
    "Enregistrer") : l'accorder est necessaire, sinon Warhadex ne pourra pas
    joindre l'API et affichera l'etat "API non configuree" sur les pages
    produit.
+   Les origines demandables sont declarees dans
+   `optional_host_permissions` : tout `https://`, plus `http://localhost` et
+   `http://127.0.0.1` pour le serveur mock de developpement. Une adresse en
+   `http://` sur un autre hote est refusee par le navigateur, et la page
+   d'options l'indique explicitement. Le port n'entre jamais dans le motif de
+   permission demande : une permission d'hote couvre tous les ports de cet
+   hote.
 4. Une cle d'API est facultative ; si renseignee, elle est envoyee en
    en-tete `Authorization: Bearer <cle>` par le service worker uniquement.
 5. La duree du cache (en jours) et l'activation du lanceur sur les pages

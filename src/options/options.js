@@ -10,8 +10,11 @@ function afficher(message, erreur = false) {
   etat.dataset.erreur = String(erreur);
 }
 
+// un motif de permission d hote ne porte jamais de port : il couvre deja tous
+// les ports de l hote, et la grammaire Firefox interdit un port dans l hote
 function motifOrigine(valeur) {
-  return `${new URL(valeur).origin}/*`;
+  const url = new URL(valeur);
+  return `${url.protocol}//${url.hostname}/*`;
 }
 
 async function charger() {
@@ -34,7 +37,15 @@ form.addEventListener('submit', async (event) => {
   }
 
   // la demande doit partir du geste utilisateur, donc avant toute attente
-  const accorde = await browser.permissions.request({ origins: [origine] });
+  let accorde;
+  try {
+    accorde = await browser.permissions.request({ origins: [origine] });
+  } catch {
+    // le navigateur refuse le motif : origine non couverte par
+    // optional_host_permissions, ou schema non supporte
+    afficher(`Le navigateur a refuse la demande de permission pour ${origine}`, true);
+    return;
+  }
   if (!accorde) {
     afficher('Permission refusee, Warhadex ne pourra pas joindre votre API', true);
     return;
