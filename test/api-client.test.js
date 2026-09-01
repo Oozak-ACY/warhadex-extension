@@ -43,7 +43,7 @@ test('character leve une ApiError not-found sur 404', async () => {
   await server.close();
 });
 
-test('lever not-configure quand aucune url n est reglee', async () => {
+test('lever not-configured quand aucune url n est reglee', async () => {
   const client = clientFor('');
   await assert.rejects(
     () => client.resolve('calgar', 'x'),
