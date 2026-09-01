@@ -301,3 +301,10 @@ La cle d'API renseignee dans les reglages ne quitte jamais le service
 worker : le script de contenu n'emet aucune requete vers un hote distant, et
 seul le nom de produit normalise ainsi que le domaine d'origine sont envoyes
 a l'API que vous avez vous-meme configuree.
+
+Elle ne quitte pas non plus la machine par le stockage : la cle est
+conservee dans `storage.local`, jamais dans `storage.sync`, qui televerserait
+la valeur vers le service de synchronisation de votre navigateur. Les autres
+reglages (adresse de l'API, duree du cache, affichage du lanceur) sont eux
+dans `storage.sync` et suivent donc votre profil. Le bouton "Vider le cache"
+ne supprime que les entrees de cache prefixees, jamais vos reglages.

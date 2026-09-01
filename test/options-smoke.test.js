@@ -8,7 +8,10 @@ import { MSG } from '../src/core/messages.js';
 // Keep one stable stub object and reassign its leaf methods per test.
 const browserStub = {
   runtime: { sendMessage: async () => null },
-  storage: { sync: { get: async () => ({}), set: async () => {} } },
+  storage: {
+    sync: { get: async () => ({}), set: async () => {} },
+    local: { get: async () => ({}), set: async () => {} }
+  },
   permissions: { request: async () => true }
 };
 globalThis.browser = browserStub;
@@ -50,10 +53,18 @@ async function setup({ stored = {}, permissionGranted = true, permissionThrows =
   patchNamedFormAccess(dom.window.document);
   globalThis.document = dom.window.document;
 
-  browserStub.storage.sync.get = async () => stored;
+  // les reglages sont repartis sur deux aires : apiKey dans local, le reste dans sync
+  const { apiKey, ...synced } = stored;
+  browserStub.storage.sync.get = async () => synced;
+  browserStub.storage.local.get = async () => (apiKey === undefined ? {} : { apiKey });
+
   const setCalls = [];
+  const localSetCalls = [];
   browserStub.storage.sync.set = async (patch) => {
     setCalls.push(patch);
+  };
+  browserStub.storage.local.set = async (patch) => {
+    localSetCalls.push(patch);
   };
 
   const permissionCalls = [];
@@ -87,6 +98,7 @@ async function setup({ stored = {}, permissionGranted = true, permissionThrows =
     field,
     etat: doc.querySelector('#etat'),
     setCalls,
+    localSetCalls,
     permissionCalls,
     sentMessages
   };
@@ -108,7 +120,7 @@ test('charger remplit le formulaire avec les reglages existants', async () => {
 });
 
 test('soumission valide demande la permission d hote puis enregistre les reglages', async () => {
-  const { doc, form, field, etat, setCalls, permissionCalls } = await setup();
+  const { doc, form, field, etat, setCalls, localSetCalls, permissionCalls } = await setup();
 
   field('apiBaseUrl').value = 'https://api.exemple.fr/base';
   field('apiKey').value = 'ma-cle';
@@ -120,8 +132,10 @@ test('soumission valide demande la permission d hote puis enregistre les reglage
 
   assert.deepEqual(permissionCalls, [{ origins: ['https://api.exemple.fr/*'] }]);
   assert.deepEqual(setCalls, [
-    { apiBaseUrl: 'https://api.exemple.fr/base', apiKey: 'ma-cle', cacheTtlDays: 21, showLauncher: true }
+    { apiBaseUrl: 'https://api.exemple.fr/base', cacheTtlDays: 21, showLauncher: true }
   ]);
+  // la cle d API ne doit jamais partir dans storage.sync
+  assert.deepEqual(localSetCalls, [{ apiKey: 'ma-cle' }]);
   assert.equal(etat.textContent, 'Reglages enregistres');
   assert.equal(etat.dataset.erreur, 'false');
 });

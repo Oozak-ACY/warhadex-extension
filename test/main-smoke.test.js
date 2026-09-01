@@ -18,7 +18,8 @@ const browserStub = {
     sendMessage: async () => null
   },
   storage: {
-    sync: { get: async () => ({}) }
+    sync: { get: async () => ({}) },
+    local: { get: async () => ({}) }
   }
 };
 globalThis.browser = browserStub;

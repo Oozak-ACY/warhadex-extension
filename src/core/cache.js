@@ -19,8 +19,12 @@ export function createCache({ storage, now = () => Date.now() }) {
       await storage.set({ [PREFIX + key]: { value, expiresAt: now() + ttlMs } });
     },
 
+    // storage.local ne contient pas que le cache (la cle d API y vit aussi) :
+    // on ne supprime que les entrees prefixees
     async clear() {
-      await storage.clear();
+      const tout = await storage.get(null);
+      const keys = Object.keys(tout ?? {}).filter((key) => key.startsWith(PREFIX));
+      if (keys.length) await storage.remove(keys);
     }
   };
 }
