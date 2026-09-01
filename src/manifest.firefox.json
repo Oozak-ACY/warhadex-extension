@@ -1,0 +1,13 @@
+{
+  "background": {
+    "scripts": ["background/service-worker.js"],
+    "type": "module",
+    "service_worker": null
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "warhadex@localhost",
+      "strict_min_version": "101.0"
+    }
+  }
+}
