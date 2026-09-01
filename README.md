@@ -38,7 +38,9 @@ superieur.
 - `src/content` : detection du personnage sur la page produit (aucun acces
   reseau, aucune cle d'API) et rendu du panneau.
 - `src/background` : service worker, seul composant autorise a contacter
-  l'API distante.
+  l'API distante. `service-worker.js` se limite au cablage des ecouteurs ;
+  la resolution, le cache et la regle de certitude vivent dans `resolver.js`,
+  le badge dans `badge.js`, tous deux testables hors navigateur.
 - `src/core` : reglages (`settings.js`), client d'API (`api-client.js`),
   cache TTL (`cache.js`) et constantes de protocole (`messages.js`).
 - `src/options` : page de reglages de l'extension.
@@ -154,11 +156,15 @@ npm test
 Execute `node --test "test/**/*.test.js"` (la forme repertoire, `node --test
 test/`, echoue avec `MODULE_NOT_FOUND` sur Node 24 sous Windows ; utiliser
 le motif glob ci-dessus). A la date de redaction de ce document, la suite
-compte 72 tests, tous passants, couvrant entre autres la detection sur
+compte 110 tests, tous passants, couvrant entre autres la detection sur
 fixtures HTML capturees des quatre sites pris en charge, le client d'API
-(succes, 404, 429, panne reseau), le cache et son expiration, ainsi que des
-tests d'integration jsdom qui montent le panneau reel, cliquent les onglets,
-verifient le Shadow DOM, la page d'options, et le patch d'historique SPA.
+(succes, 404, 429, panne reseau), le cache, son expiration et son cache
+negatif, la logique du service worker (regle de certitude, TTL, badge,
+traduction des erreurs), la repartition des reglages entre `storage.sync` et
+`storage.local`, ainsi que des tests d'integration jsdom qui montent le
+panneau reel, cliquent les onglets, verifient le Shadow DOM, la page
+d'options, le patch d'historique SPA et la reprise de detection sur mutation
+du DOM.
 
 ```bash
 npm run build
@@ -205,7 +211,7 @@ avec ou sans adaptateur dedie.
 **Cette section documente un travail non realise, et non un simple
 complement recommande.** L'environnement dans lequel ce projet a ete
 implemente ne peut pas ouvrir `chrome://extensions` ni aucun navigateur
-reel : toute la validation a ete faite par des tests automatises (72 tests
+reel : toute la validation a ete faite par des tests automatises (110 tests
 `node --test`, y compris des tests d'integration jsdom qui montent le
 panneau, simulent des clics d'onglets, le Shadow DOM et la navigation SPA).
 Personne n'a donc encore confirme que le service worker s'enregistre
@@ -231,6 +237,8 @@ personnage present dans `mock-api/data/characters.json`.
 - [ ] Le lanceur flottant apparait sur la page.
 - [ ] Le clic sur le lanceur ouvre le panneau.
 - [ ] L'onglet Regles affiche le profil (M, T, Sv, PV, Ld, OC) et les armes.
+- [ ] Le pied de l'onglet Regles affiche la source servie par l'API
+      (`Source : Serveur mock Warhadex` avec le jeu de donnees mock).
 - [ ] L'onglet Histoire est present et affiche le lore ou les livres.
 - [ ] Meme sequence (badge, lanceur, panneau, profil, armes, onglet
       Histoire) verifiee sur Element Games.
@@ -245,6 +253,14 @@ personnage present dans `mock-api/data/characters.json`.
       recharger la page (lien interne). Le panneau se ferme puis se
       remet a jour avec le nouveau personnage, badge inclus, sans qu'un
       rechargement complet de la page n'ait eu lieu.
+- [ ] Navigation SPA sur warhammer.com depuis une fiche produit reconnue vers
+      une page de categorie sans personnage : le badge de l'onglet redevient
+      vide au lieu de rester fige sur `1`.
+- [ ] Sur warhammer.com, page rendue cote client : le lanceur apparait meme
+      quand le titre du produit arrive apres le chargement initial (reprise
+      par observation du DOM, abandonnee au bout de dix secondes).
+- [ ] Avec le serveur mock arrete : le lanceur reste visible et son clic
+      ouvre le panneau sur le message "Votre API est injoignable".
 - [ ] La page d'options s'ouvre, accepte une URL d'API, demande la
       permission d'hote correspondante, et enregistre les reglages.
 - [ ] Le bouton "Vider le cache" fonctionne (verifiable en observant que la

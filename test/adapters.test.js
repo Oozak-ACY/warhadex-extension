@@ -14,18 +14,42 @@ test('retourner null pour un domaine inconnu', () => {
   assert.equal(findAdapter('https://example.com/produit'), null);
 });
 
+// Le nom attendu est verifie mot pour mot : un simple `length > 0` passerait encore
+// si l adaptateur attrapait un titre de section ou un fil d Ariane a la place du
+// produit, ce qui enverrait une requete inutile a l API.
 test('chaque adaptateur extrait le nom de sa fixture', () => {
   const cas = [
-    ['https://www.warhammer.com/fr-FR/shop/x', 'warhammer-com-product.html'],
-    ['https://elementgames.co.uk/x', 'element-games-product.html'],
-    ['https://www.waylandgames.co.uk/x', 'wayland-games-product.html'],
-    ['https://www.philibertnet.com/fr/x', 'philibert-product.html']
+    [
+      'https://www.warhammer.com/fr-FR/shop/x',
+      'warhammer-com-product.html',
+      'Marneus Calgar in Armour of Antilochus',
+      'adapter:warhammer-com:[data-testid="hero-product-card-name"]'
+    ],
+    [
+      'https://elementgames.co.uk/x',
+      'element-games-product.html',
+      'Marneus Calgar In Armour Of Antilochus',
+      'adapter:element-games:.product-page-title h1'
+    ],
+    [
+      'https://www.waylandgames.co.uk/x',
+      'wayland-games-product.html',
+      'Ultramarines: Marneus Calgar in Armour of Antilochus',
+      'adapter:wayland-games:h1[class*="ProductInfo_detailTitle"]'
+    ],
+    [
+      'https://www.philibertnet.com/fr/x',
+      'philibert-product.html',
+      'W40K : Ultramarines - Marneus Calgar in Armour of Antilochus',
+      'adapter:philibert:#product-title'
+    ]
   ];
 
-  for (const [url, fixture] of cas) {
+  for (const [url, fixture, attendu, source] of cas) {
     const result = findAdapter(url).extract(loadFixture(fixture));
     assert.ok(result, `extraction vide pour ${fixture}`);
-    assert.ok(result.raw.length > 0, `nom vide pour ${fixture}`);
+    assert.equal(result.raw, attendu, `nom inattendu pour ${fixture}`);
+    assert.equal(result.source, source, `selecteur inattendu pour ${fixture}`);
   }
 });
 
