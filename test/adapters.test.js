@@ -29,7 +29,16 @@ test('chaque adaptateur extrait le nom de sa fixture', () => {
   }
 });
 
-test('un adaptateur retourne null plutot que de deviner sur une page sans produit', () => {
+test('chaque adaptateur retourne null plutot que de deviner sur une page sans produit', () => {
+  const urls = [
+    'https://www.warhammer.com/fr-FR/x',
+    'https://elementgames.co.uk/x',
+    'https://www.waylandgames.co.uk/x',
+    'https://www.philibertnet.com/fr/x'
+  ];
   const doc = loadHtml('<body><nav>Catalogue</nav></body>');
-  assert.equal(findAdapter('https://www.warhammer.com/fr-FR/x').extract(doc), null);
+
+  for (const url of urls) {
+    assert.equal(findAdapter(url).extract(doc), null, `faux positif pour ${url}`);
+  }
 });
