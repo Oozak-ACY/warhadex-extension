@@ -56,7 +56,15 @@ async function analyser() {
     return;
   }
 
-  if (!reponse || reponse.status === STATUS.NOT_FOUND) {
+  if (!reponse) {
+    // reponse absente : ce n est pas une reponse definitive sur ce produit
+    // (cross-browser : Firefox/Safari peuvent resoudre undefined sans rejeter)
+    dernier = null;
+    launcher.hide();
+    return;
+  }
+
+  if (reponse.status === STATUS.NOT_FOUND) {
     launcher.hide();
     return;
   }

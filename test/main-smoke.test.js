@@ -196,6 +196,35 @@ test('un statut offline efface le garde-fou pour permettre une nouvelle tentativ
   assert.equal(calls.length, 2, 'un statut offline ne doit pas bloquer une nouvelle tentative');
 });
 
+// Regression: an absent/undefined response (distinct from a rejection and from a
+// genuine NOT_FOUND) is not a definitive answer either - e.g. Firefox/Safari can
+// resolve sendMessage to undefined instead of rejecting when nothing answers. It
+// must hide the launcher (unchanged) but must also clear `dernier` so a later
+// re-detection of the same product retries instead of being permanently skipped.
+test('une reponse absente efface le garde-fou pour permettre une nouvelle tentative', async () => {
+  let resolveCalls = 0;
+  const { doc, calls, start, findLauncherButton } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      resolveCalls += 1;
+      if (resolveCalls === 1) return undefined;
+      return { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } };
+    }
+  });
+
+  await start();
+
+  assert.equal(calls.length, 1);
+  assert.equal(findLauncherButton().hidden, true, 'le lanceur doit etre masque sans reponse');
+
+  doc.defaultView.history.pushState({}, '', '/autre-chemin');
+  await wait(550);
+
+  assert.equal(calls.length, 2, 'une reponse absente ne doit pas bloquer une nouvelle tentative');
+  assert.equal(findLauncherButton().hidden, false, 'le lanceur doit redevenir visible apres le succes');
+});
+
 // Regression: a rejected sendMessage from the match-picker flow (ouvrirFiche) must
 // also surface the error state instead of escaping as an unhandled rejection.
 test('un rejet de sendMessage dans ouvrirFiche affiche l etat erreur', async () => {
