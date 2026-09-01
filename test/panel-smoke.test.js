@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { STATUS } from '../src/core/messages.js';
 
@@ -100,10 +101,62 @@ test('showCharacter cree un onglet Histoire et bascule la vue au clic', async ()
   assert.equal(shadow.querySelector('.wx-datasheet'), null);
 });
 
+test('showCharacter affiche la source en pied de l onglet Regles', async () => {
+  const { shadow, panel } = await setup();
+  panel.showCharacter({
+    ...character,
+    source: { label: 'Codex factice', url: 'https://example.com/codex' }
+  });
+
+  const pied = shadow.querySelector('.wx-source');
+  assert.ok(pied, 'la source doit etre rendue dans l onglet Regles');
+  assert.equal(pied.querySelector('a').getAttribute('href'), 'https://example.com/codex');
+});
+
+test('showMatches sans faction n affiche pas de separateur orphelin', async () => {
+  const { shadow, panel } = await setup();
+  panel.showMatches([{ id: 'a', name: 'Alpha' }, { id: 'b', name: 'Beta', faction: 'Orks' }]);
+
+  const boutons = [...shadow.querySelectorAll('.wx-match')].map((b) => b.textContent);
+  assert.deepEqual(boutons, ['Alpha', 'Beta - Orks']);
+});
+
 test('showCharacter sans lore ne cree pas d onglets', async () => {
   const { shadow, panel } = await setup();
   panel.showCharacter({ ...character, lore: '', books: [] });
   assert.equal(shadow.querySelectorAll('.wx-tab').length, 0);
+});
+
+// La feuille de style vit hors du Shadow DOM monte par jsdom, qui n applique aucune
+// cascade : on verifie au moins que chaque classe emise par les modules de rendu a
+// bien une regle, et que la barre d onglets vide est effacee plutot que de laisser
+// une bordure residuelle.
+test('la feuille de style couvre chaque classe rendue', () => {
+  const css = readFileSync(new URL('../src/content/panel/panel.css', import.meta.url), 'utf8');
+  const selecteurs = [
+    '.wx-root',
+    '.wx-close',
+    '.wx-tabs',
+    '.wx-tabs:empty',
+    '.wx-tab',
+    '.wx-head',
+    '.wx-sub',
+    '.wx-stats',
+    '.wx-stat',
+    '.wx-invul',
+    '.wx-points',
+    '.wx-table',
+    '.wx-keywords',
+    '.wx-books',
+    '.wx-book-meta',
+    '.wx-source',
+    '.wx-state',
+    '.wx-match'
+  ];
+
+  for (const selecteur of selecteurs) {
+    assert.ok(css.includes(selecteur), `aucune regle pour ${selecteur}`);
+  }
 });
 
 test('destroy retire l ecouteur keydown du document', async () => {

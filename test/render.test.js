@@ -6,6 +6,7 @@ import { renderDatasheet } from '../src/content/panel/render/datasheet.js';
 import { renderWeapons } from '../src/content/panel/render/weapons.js';
 import { renderAbilities } from '../src/content/panel/render/abilities.js';
 import { renderLore } from '../src/content/panel/render/lore.js';
+import { renderSource } from '../src/content/panel/render/source.js';
 import { renderState } from '../src/content/panel/render/states.js';
 import { STATUS } from '../src/core/messages.js';
 
@@ -96,6 +97,38 @@ test('renderLore refuse une url javascript et retombe sur un span', () => {
   });
   assert.equal(node.querySelector('a'), null, 'un lien ne doit jamais porter un href javascript:');
   assert.match(node.textContent, /Roman/);
+});
+
+test('renderSource retourne null quand la fiche ne porte aucune source', () => {
+  assert.equal(renderSource(doc, character), null);
+  assert.equal(renderSource(doc, { ...character, source: {} }), null);
+});
+
+test('renderSource transforme une url https en lien cliquable', () => {
+  const node = renderSource(doc, {
+    ...character,
+    source: { label: 'Codex factice', url: 'https://example.com/codex' }
+  });
+  const lien = node.querySelector('a');
+  assert.ok(lien, 'aucun lien genere pour une url https');
+  assert.equal(lien.getAttribute('href'), 'https://example.com/codex');
+  assert.equal(lien.getAttribute('rel'), 'noopener noreferrer');
+  assert.equal(lien.textContent, 'Codex factice');
+  assert.match(node.textContent, /Source/);
+});
+
+test('renderSource refuse une url javascript et retombe sur du texte', () => {
+  const node = renderSource(doc, {
+    ...character,
+    source: { label: 'Codex factice', url: 'javascript:alert(1)' }
+  });
+  assert.equal(node.querySelector('a'), null, 'un lien ne doit jamais porter un href javascript:');
+  assert.match(node.textContent, /Codex factice/);
+});
+
+test('renderSource affiche l url quand le libelle manque', () => {
+  const node = renderSource(doc, { ...character, source: { url: 'https://example.com/codex' } });
+  assert.equal(node.querySelector('a').textContent, 'https://example.com/codex');
 });
 
 test('renderState produit un message par statut', () => {

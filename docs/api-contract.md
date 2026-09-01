@@ -176,14 +176,14 @@ absentes du panneau.
 | `points` | non | array | Cout en points. Chaque element : `models` (nombre de figurines), `cost` (nombre de points). |
 | `lore` | non | string | Texte d histoire. Determine, avec `books`, l apparition de l onglet Histoire : l onglet n existe que si l un des deux est present. |
 | `books` | non | array | Ouvrages associes. Chaque element : `title` (string, obligatoire au sein de l objet), `author` (string), `year` (number), `url` (string). |
-| `source` | non | object | Reference de la source des regles (`label`, `url`), affichee en pied de panneau. |
+| `source` | non | object | Reference de la source des regles (`label`, `url`), rendue en pied de l onglet Regles. `label` est le texte affiche ; a defaut, l `url` sert de texte. La section est masquee si les deux sont absents. |
 
-### Note sur `books[].url`
+### Note sur `books[].url` et `source.url`
 
 L extension n insere jamais de HTML brut issu de l API (voir section 6 de la
 spec de design) et applique une regle de securite simple sur les liens de
-livres : une URL n est transformee en lien cliquable **que si elle
-correspond a l expression reguliere `^https?://`**. Toute autre valeur
+livres et sur le lien de source : une URL n est transformee en lien cliquable
+**que si elle correspond a l expression reguliere `^https?://`**. Toute autre valeur
 (chemin relatif, `javascript:`, chaine vide, schema non http) est affichee
 en texte brut, sans lien. Un backend qui sert des chemins relatifs ou des
 identifiants internes dans `books[].url` doit s attendre a voir ces valeurs

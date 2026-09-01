@@ -5,6 +5,7 @@ import { renderDatasheet } from './render/datasheet.js';
 import { renderWeapons } from './render/weapons.js';
 import { renderAbilities } from './render/abilities.js';
 import { renderLore } from './render/lore.js';
+import { renderSource } from './render/source.js';
 import { renderState } from './render/states.js';
 
 async function loadStyles(doc) {
@@ -78,7 +79,8 @@ export async function createPanel({ doc, onSelect }) {
       const regles = () => [
         renderDatasheet(doc, character),
         renderWeapons(doc, character.weapons),
-        renderAbilities(doc, character)
+        renderAbilities(doc, character),
+        renderSource(doc, character)
       ];
       const histoire = () => [renderLore(doc, character)];
 
@@ -101,7 +103,7 @@ export async function createPanel({ doc, onSelect }) {
           doc,
           'button',
           { class: 'wx-match', type: 'button' },
-          `${match.name} - ${match.faction ?? ''}`
+          [match.name, match.faction].filter(Boolean).join(' - ')
         );
         bouton.addEventListener('click', () => onSelect(match.id));
         return bouton;

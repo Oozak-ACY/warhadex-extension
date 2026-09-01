@@ -45,6 +45,11 @@
   border-bottom: 1px solid #334155;
 }
 
+/* une seule vue : pas de barre d onglets, donc pas de bordure residuelle */
+.wx-tabs:empty {
+  display: none;
+}
+
 .wx-tab {
   background: transparent;
   border: 0;
@@ -95,6 +100,17 @@
   font-weight: 600;
 }
 
+.wx-invul {
+  color: #f8fafc;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.wx-points {
+  color: #94a3b8;
+  margin: 0 0 12px;
+}
+
 .wx-table {
   border-collapse: collapse;
   font-size: 12px;
@@ -134,6 +150,19 @@
 
 .wx-book-meta {
   color: #94a3b8;
+}
+
+.wx-source {
+  border-top: 1px solid #1e293b;
+  color: #94a3b8;
+  display: block;
+  font-size: 11px;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+
+.wx-source a {
+  color: #38bdf8;
 }
 
 .wx-state {
