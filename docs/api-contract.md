@@ -30,14 +30,17 @@ en cas de doute, ce document prevaut.
 - `score` doit etre un flottant **normalise entre 0 et 1** ou 1 signifie une
   correspondance certaine.
 - Le client considere une correspondance comme certaine (et charge la fiche
-  automatiquement) si, et seulement si, l une des deux conditions suivantes
-  est vraie :
-  - la liste `matches` ne contient qu un seul element, quel que soit son
-    score ;
-  - le score du meilleur element est superieur ou egal a **0.8**.
+  automatiquement) si, et seulement si, les deux conditions suivantes sont
+  vraies **ensemble** :
+  - la liste `matches` ne contient qu un seul element ;
+  - le score de cet element est **strictement superieur a 0.8**.
 
-  Dans tous les autres cas (plusieurs correspondances, aucune n atteignant
-  0.8), le panneau affiche un selecteur et laisse l utilisateur choisir.
+  Dans tous les autres cas, le panneau affiche un selecteur et laisse
+  l utilisateur choisir. Cela inclut le cas d une correspondance unique mais
+  peu sure, ou le selecteur ne propose qu une entree : c est volontaire,
+  afficher a tort un personnage avec assurance est un echec plus grave que
+  demander confirmation. Un serveur qui veut declencher l affichage direct
+  doit donc renvoyer une seule correspondance et un score au dessus de 0.8.
 - Authentification facultative : si une cle d API est renseignee dans les
   reglages, elle est envoyee dans l en-tete `Authorization: Bearer <cle>`
   sur chaque requete. La cle ne quitte jamais le service worker de
