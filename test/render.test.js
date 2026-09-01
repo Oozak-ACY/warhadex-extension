@@ -78,6 +78,26 @@ test('renderLore affiche l histoire et les livres', () => {
   assert.match(node.textContent, /Roman/);
 });
 
+test('renderLore transforme une url https en lien cliquable', () => {
+  const node = renderLore(doc, {
+    ...character,
+    books: [{ title: 'Roman', author: 'Auteur', year: 2000, url: 'https://example.com/roman' }]
+  });
+  const lien = node.querySelector('a');
+  assert.ok(lien, 'aucun lien genere pour une url https');
+  assert.equal(lien.getAttribute('href'), 'https://example.com/roman');
+  assert.equal(lien.textContent, 'Roman');
+});
+
+test('renderLore refuse une url javascript et retombe sur un span', () => {
+  const node = renderLore(doc, {
+    ...character,
+    books: [{ title: 'Roman', author: 'Auteur', year: 2000, url: 'javascript:alert(1)' }]
+  });
+  assert.equal(node.querySelector('a'), null, 'un lien ne doit jamais porter un href javascript:');
+  assert.match(node.textContent, /Roman/);
+});
+
 test('renderState produit un message par statut', () => {
   for (const status of [STATUS.NOT_FOUND, STATUS.NOT_CONFIGURED, STATUS.OFFLINE, STATUS.ERROR]) {
     assert.ok(renderState(doc, status).textContent.length > 0, `message vide pour ${status}`);

@@ -10,7 +10,12 @@ import { renderState } from './render/states.js';
 async function loadStyles(doc) {
   const style = doc.createElement('style');
   const url = browser.runtime.getURL('content/panel/panel.css');
-  style.textContent = await (await fetch(url)).text();
+  try {
+    style.textContent = await (await fetch(url)).text();
+  } catch {
+    // Le panneau doit tout de meme s afficher, meme sans sa feuille de style
+    style.textContent = '';
+  }
   return style;
 }
 
@@ -30,10 +35,12 @@ export async function createPanel({ doc, onSelect }) {
   const open = () => root.setAttribute('data-open', 'true');
   const closePanel = () => root.setAttribute('data-open', 'false');
 
-  close.addEventListener('click', closePanel);
-  doc.addEventListener('keydown', (event) => {
+  const onKeydown = (event) => {
     if (event.key === 'Escape') closePanel();
-  });
+  };
+
+  close.addEventListener('click', closePanel);
+  doc.addEventListener('keydown', onKeydown);
 
   function showSections(sections) {
     body.replaceChildren(...sections.filter(Boolean));
@@ -62,7 +69,10 @@ export async function createPanel({ doc, onSelect }) {
   return {
     open,
     close: closePanel,
-    destroy: () => host.remove(),
+    destroy: () => {
+      doc.removeEventListener('keydown', onKeydown);
+      host.remove();
+    },
 
     showCharacter(character) {
       const regles = () => [
@@ -73,7 +83,7 @@ export async function createPanel({ doc, onSelect }) {
       const histoire = () => [renderLore(doc, character)];
 
       const entries = [{ label: 'Regles', sections: regles }];
-      if (renderLore(doc, character)) entries.push({ label: 'Histoire', sections: histoire });
+      if (character.lore || character.books?.length) entries.push({ label: 'Histoire', sections: histoire });
 
       buildTabs(entries);
       showSections(regles());

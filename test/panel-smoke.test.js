@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 import { STATUS } from '../src/core/messages.js';
 
 // panel.js loads its CSS via `browser.runtime.getURL` + `fetch`, both stubbed here
-// since jsdom is not a real extension context.
+// since jsdom is not a real extension context
 const FAKE_CSS = '.wx-root { color: red; }';
 
 const character = {
@@ -21,9 +21,9 @@ const character = {
   books: []
 };
 
-async function setup() {
+async function setup({ fetchImpl } = {}) {
   globalThis.browser = { runtime: { getURL: (path) => `stub://${path}` } };
-  globalThis.fetch = async () => ({ text: async () => FAKE_CSS });
+  globalThis.fetch = fetchImpl ?? (async () => ({ text: async () => FAKE_CSS }));
 
   const dom = new JSDOM('<!doctype html><body>');
   const doc = dom.window.document;
@@ -41,6 +41,17 @@ test('createPanel monte un host avec shadow dom et charge le css via fetch', asy
   assert.ok(shadow, 'pas de shadow root');
   assert.equal(shadow.querySelector('style').textContent, FAKE_CSS);
   assert.equal(shadow.querySelector('.wx-root').getAttribute('data-open'), 'false');
+});
+
+test('createPanel monte le panneau sans css quand le fetch echoue', async () => {
+  const { doc, shadow } = await setup({
+    fetchImpl: async () => {
+      throw new Error('reseau indisponible');
+    }
+  });
+  assert.ok(doc.body.firstElementChild, 'le panneau doit exister meme sans feuille de style');
+  assert.ok(shadow.querySelector('.wx-root'), 'le panneau doit rester utilisable sans feuille de style');
+  assert.equal(shadow.querySelector('style').textContent, '');
 });
 
 test('open et close bascule data-open', async () => {
@@ -93,4 +104,17 @@ test('showCharacter sans lore ne cree pas d onglets', async () => {
   const { shadow, panel } = await setup();
   panel.showCharacter({ ...character, lore: '', books: [] });
   assert.equal(shadow.querySelectorAll('.wx-tab').length, 0);
+});
+
+test('destroy retire l ecouteur keydown du document', async () => {
+  const { doc, shadow, panel } = await setup();
+  const root = shadow.querySelector('.wx-root');
+
+  panel.open();
+  assert.equal(root.getAttribute('data-open'), 'true');
+
+  panel.destroy();
+  doc.dispatchEvent(new doc.defaultView.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+  assert.equal(root.getAttribute('data-open'), 'true', 'la touche Echap ne doit plus agir apres destroy');
 });

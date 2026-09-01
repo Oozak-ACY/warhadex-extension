@@ -1,8 +1,10 @@
 import { el } from './el.js';
 
+const SAFE_URL = /^https?:\/\//i;
+
 function livre(doc, book) {
   const detail = [book.author, book.year].filter(Boolean).join(', ');
-  const titre = book.url
+  const titre = book.url && SAFE_URL.test(book.url)
     ? el(doc, 'a', { href: book.url, target: '_blank', rel: 'noopener noreferrer' }, book.title)
     : el(doc, 'span', {}, book.title);
   return el(doc, 'li', {}, titre, detail ? el(doc, 'span', { class: 'wx-book-meta' }, ` ${detail}`) : null);
