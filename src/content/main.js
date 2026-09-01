@@ -32,7 +32,7 @@ function observerApparition() {
   const observer = new window.MutationObserver(() => {
     if (!detect(document, location.href)) return;
     annulerObservation();
-    analyser({ observer: false });
+    analyser({ reessayer: false });
   });
   const timer = window.setTimeout(annulerObservation, OBSERVATION_MS);
 
@@ -64,7 +64,7 @@ function appliquer(reponse) {
   else panel.showState(reponse.status);
 }
 
-async function analyser({ observer = true } = {}) {
+async function analyser({ reessayer = true } = {}) {
   const trouve = detect(document, location.href);
 
   if (!trouve) {
@@ -72,7 +72,7 @@ async function analyser({ observer = true } = {}) {
     launcher.hide();
     // le badge de l onglet resterait sinon fige sur la page produit precedente
     await envoyer({ type: MSG.CLEAR_BADGE });
-    if (observer) observerApparition();
+    if (reessayer) observerApparition();
     return;
   }
 
