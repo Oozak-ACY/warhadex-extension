@@ -1,6 +1,6 @@
 export class ApiError extends Error {
-  constructor(status, message, retryAfter) {
-    super(message);
+  constructor(status, message, retryAfter, options) {
+    super(message, options);
     this.name = 'ApiError';
     this.status = status;
     this.retryAfter = retryAfter;
@@ -21,7 +21,12 @@ export function createApiClient({ getSettings, fetchImpl = fetch }) {
     const { apiBaseUrl, apiKey } = await getSettings();
     if (!apiBaseUrl) throw new ApiError('not-configured', 'url d api non reglee');
 
-    const url = new URL(path, apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`);
+    let url;
+    try {
+      url = new URL(path, apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`);
+    } catch (err) {
+      throw new ApiError('not-configured', 'url d api invalide', undefined, { cause: err });
+    }
     for (const [key, value] of Object.entries(params ?? {})) {
       if (value) url.searchParams.set(key, value);
     }
@@ -32,8 +37,8 @@ export function createApiClient({ getSettings, fetchImpl = fetch }) {
     let response;
     try {
       response = await fetchImpl(url, { headers, credentials: 'omit' });
-    } catch {
-      throw new ApiError('offline', 'api injoignable');
+    } catch (err) {
+      throw new ApiError('offline', 'api injoignable', undefined, { cause: err });
     }
 
     if (!response.ok) throw mapHttpError(response);

@@ -65,6 +65,44 @@ test('lever offline quand fetch echoue', async () => {
   );
 });
 
+test('lever offline sans perdre la cause quand fetch echoue pour une raison non reseau', async () => {
+  const originalError = new RangeError('erreur de logique interne au fetchImpl');
+  const client = createApiClient({
+    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    fetchImpl: async () => {
+      throw originalError;
+    }
+  });
+
+  await assert.rejects(
+    () => client.resolve('calgar', 'x'),
+    (error) => error instanceof ApiError && error.status === 'offline' && error.cause === originalError
+  );
+});
+
+test('lever not-configured plutot qu une TypeError brute quand apiBaseUrl est invalide', async () => {
+  const client = clientFor('not a url');
+
+  await assert.rejects(
+    () => client.resolve('calgar', 'x'),
+    (error) => error instanceof ApiError && error.status === 'not-configured'
+  );
+});
+
+test('conserver le segment de chemin d une apiBaseUrl a plusieurs segments', async () => {
+  let seenUrl;
+  const client = createApiClient({
+    getSettings: async () => ({ apiBaseUrl: 'https://api.example/warhadex', apiKey: '' }),
+    fetchImpl: async (url) => {
+      seenUrl = url;
+      return new Response(JSON.stringify({ matches: [] }), { status: 200 });
+    }
+  });
+
+  await client.resolve('calgar', 'x');
+  assert.equal(new URL(seenUrl).pathname, '/warhadex/v1/resolve');
+});
+
 test('lever rate-limited sur 429', async () => {
   const client = createApiClient({
     getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
