@@ -27,7 +27,6 @@
   "optional_host_permissions": ["https://*/*"],
   "host_permissions": [
     "https://*.warhammer.com/*",
-    "https://*.games-workshop.com/*",
     "https://*.elementgames.co.uk/*",
     "https://*.waylandgames.co.uk/*",
     "https://*.philibertnet.com/*"
@@ -36,7 +35,6 @@
     {
       "matches": [
         "https://*.warhammer.com/*",
-        "https://*.games-workshop.com/*",
         "https://*.elementgames.co.uk/*",
         "https://*.waylandgames.co.uk/*",
         "https://*.philibertnet.com/*"
@@ -51,7 +49,6 @@
       "resources": ["content/*", "core/*", "vendor/*", "assets/icons/*"],
       "matches": [
         "https://*.warhammer.com/*",
-        "https://*.games-workshop.com/*",
         "https://*.elementgames.co.uk/*",
         "https://*.waylandgames.co.uk/*",
         "https://*.philibertnet.com/*"
