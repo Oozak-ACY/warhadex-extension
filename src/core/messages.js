@@ -1,7 +1,8 @@
 export const MSG = {
   RESOLVE: 'warhadex:resolve',
   CHARACTER: 'warhadex:character',
-  CLEAR_CACHE: 'warhadex:clear-cache'
+  CLEAR_CACHE: 'warhadex:clear-cache',
+  CLEAR_BADGE: 'warhadex:clear-badge'
 };
 
 export const STATUS = {

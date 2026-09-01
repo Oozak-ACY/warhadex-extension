@@ -25,8 +25,12 @@ globalThis.browser = browserStub;
 
 // A cache-busting query on the dynamic import gives each test a fresh main.js module
 // instance, so module-level state (panel/launcher/dernier) does not leak between tests.
-async function setup({ head = '', body = '', url = 'https://www.example.com/produit', showLauncher = true, sendMessage }) {
+// `t` is optional: pass it from any test that leaves main.js's bounded
+// MutationObserver armed, so the jsdom window (and its 10 s timer) is torn down
+// with the test instead of keeping the process alive.
+async function setup({ head = '', body = '', url = 'https://www.example.com/produit', showLauncher = true, sendMessage }, t) {
   const dom = new JSDOM(`<!doctype html><head>${head}</head><body>${body}</body>`, { url });
+  t?.after(() => dom.window.close());
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
   globalThis.location = dom.window.location;
@@ -109,15 +113,51 @@ test('start detecte un personnage, resout et affiche le lanceur avec un match', 
   assert.equal(panelRoot.getAttribute('data-open'), 'false', 'le panneau ne doit jamais s ouvrir tout seul');
 });
 
-test('start masque le lanceur quand rien n est detecte sur la page', async () => {
-  const { calls, start, findLauncherButton } = await setup({ body: '<p>Rien ici</p>' });
+test('start masque le lanceur quand rien n est detecte sur la page', async (t) => {
+  const { calls, start, findLauncherButton } = await setup({ body: '<p>Rien ici</p>' }, t);
 
   await start();
 
-  assert.deepEqual(calls, [], 'aucune resolution ne doit etre demandee sans detection');
+  assert.deepEqual(
+    calls.map((call) => call.type),
+    [MSG.CLEAR_BADGE],
+    'sans detection, seul l effacement du badge doit etre demande'
+  );
   const button = findLauncherButton();
   assert.ok(button, 'le lanceur doit etre monte, meme masque');
   assert.equal(button.hidden, true);
+});
+
+// Regression: Chrome ne reinitialise un badge d onglet que sur une vraie navigation.
+// Sur une SPA, quitter une fiche produit pour une page sans personnage laissait le
+// badge fige sur `1` faute du moindre message envoye au service worker.
+test('quitter une fiche produit pour une page sans personnage efface le badge', async (t) => {
+  const { doc, calls, start } = await setup(
+    {
+      head: '<meta property="og:title" content="Marneus Calgar">',
+      sendMessage: (message) => {
+        if (message.type === MSG.RESOLVE) {
+          return { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } };
+        }
+        return null;
+      }
+    },
+    t
+  );
+
+  await start();
+  assert.deepEqual(calls.map((call) => call.type), [MSG.RESOLVE]);
+
+  // la SPA remplace le titre du produit par une page de categorie
+  doc.querySelector('meta[property="og:title"]').remove();
+  doc.defaultView.history.pushState({}, '', '/categorie');
+  await wait(550);
+
+  assert.deepEqual(
+    calls.map((call) => call.type),
+    [MSG.RESOLVE, MSG.CLEAR_BADGE],
+    'le service worker doit etre prevenu que l onglet a quitte la fiche produit'
+  );
 });
 
 test('start masque le lanceur quand la resolution renvoie not-found', async () => {
@@ -134,11 +174,12 @@ test('start masque le lanceur quand la resolution renvoie not-found', async () =
 });
 
 // Regression: a sendMessage rejection (sleeping service worker, invalidated context)
-// must not leak as an unhandled rejection, must show the error state, must hide the
-// launcher, and - since this is not a definitive answer about the product - must not
-// leave `dernier` armed, so a later re-detection of the same product retries instead
-// of being silently skipped by the dedupe guard.
-test('un rejet de sendMessage affiche l erreur, masque le lanceur et permet une nouvelle tentative', async () => {
+// must not leak as an unhandled rejection, must show the error state, must keep the
+// launcher visible so the error is actually reachable, and - since this is not a
+// definitive answer about the product - must not leave `dernier` armed, so a later
+// re-detection of the same product retries instead of being silently skipped by the
+// dedupe guard.
+test('un rejet de sendMessage affiche l erreur, laisse le lanceur ouvrable et permet une nouvelle tentative', async () => {
   let resolveCalls = 0;
   const { doc, calls, start, findLauncherButton, findPanelShadow } = await setup({
     head: '<meta property="og:title" content="Marneus Calgar">',
@@ -153,7 +194,11 @@ test('un rejet de sendMessage affiche l erreur, masque le lanceur et permet une 
   await start();
 
   assert.equal(calls.length, 1, 'la premiere tentative doit avoir ete faite');
-  assert.equal(findLauncherButton().hidden, true, 'le lanceur doit etre masque apres un rejet');
+  assert.equal(
+    findLauncherButton().hidden,
+    false,
+    'un etat erreur ecrit dans le panneau doit rester ouvrable depuis le lanceur'
+  );
   assert.equal(
     findPanelShadow().querySelector('.wx-state')?.textContent,
     'Une erreur est survenue lors de la recuperation de la fiche',
@@ -223,6 +268,75 @@ test('une reponse absente efface le garde-fou pour permettre une nouvelle tentat
 
   assert.equal(calls.length, 2, 'une reponse absente ne doit pas bloquer une nouvelle tentative');
   assert.equal(findLauncherButton().hidden, false, 'le lanceur doit redevenir visible apres le succes');
+});
+
+// Regression: NOT_CONFIGURED is not a definitive answer about this product either -
+// the user can go and set the API URL, come back to the tab, and must get a retry.
+// It must also leave the launcher visible so the "configure your API" message is
+// actually reachable.
+test('un statut not-configured laisse le lanceur ouvrable et efface le garde-fou', async () => {
+  let resolveCalls = 0;
+  const { doc, calls, start, findLauncherButton, findPanelShadow } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      resolveCalls += 1;
+      if (resolveCalls === 1) return { status: STATUS.NOT_CONFIGURED };
+      return { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } };
+    }
+  });
+
+  await start();
+
+  assert.equal(calls.length, 1);
+  assert.equal(findLauncherButton().hidden, false, 'le message de configuration doit etre atteignable');
+  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /adresse de votre API/);
+
+  doc.defaultView.history.pushState({}, '', '/autre-chemin');
+  await wait(550);
+
+  assert.equal(calls.length, 2, 'un statut not-configured ne doit pas bloquer une nouvelle tentative');
+  assert.equal(findPanelShadow().querySelector('.wx-state'), null);
+});
+
+// Regression: warhammer.com is a React SPA whose product title lands in the DOM after
+// hydration. A single document_idle pass returns null and used to give up for the life
+// of the page view. A bounded MutationObserver must pick the node up when it appears.
+test('une mutation du body qui fait apparaitre le titre declenche la detection', async (t) => {
+  const { doc, calls, start, findLauncherButton } = await setup(
+    {
+      body: '<div id="app"></div>',
+      sendMessage: (message) =>
+        message.type === MSG.RESOLVE
+          ? { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } }
+          : null
+    },
+    t
+  );
+
+  await start();
+
+  assert.deepEqual(calls.map((call) => call.type), [MSG.CLEAR_BADGE], 'rien a resoudre au premier passage');
+  assert.equal(findLauncherButton().hidden, true);
+
+  const titre = doc.createElement('h1');
+  titre.textContent = 'Marneus Calgar';
+  doc.querySelector('#app').append(titre);
+  await wait(20);
+
+  assert.deepEqual(
+    calls.map((call) => call.type),
+    [MSG.CLEAR_BADGE, MSG.RESOLVE],
+    'l apparition du titre doit relancer la resolution'
+  );
+  assert.equal(calls[1].name, 'marneus calgar');
+  assert.equal(findLauncherButton().hidden, false);
+
+  // l observateur se deconnecte au premier succes : une mutation ulterieure ne
+  // doit plus rien declencher
+  doc.querySelector('#app').append(doc.createElement('span'));
+  await wait(20);
+  assert.equal(calls.length, 2, 'l observateur doit etre deconnecte apres le premier succes');
 });
 
 // Regression: a rejected sendMessage from the match-picker flow (ouvrirFiche) must

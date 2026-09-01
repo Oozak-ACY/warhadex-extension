@@ -6,6 +6,7 @@ import {
   createResolver,
   toFailure,
   badgeState,
+  BADGE_MESSAGES,
   CERTAIN_SCORE,
   NEGATIVE_TTL_MS,
   DAY_MS
@@ -186,6 +187,23 @@ test('handle route chaque type de message', async () => {
 
   const inconnu = await resolver.handle({ type: 'warhadex:inexistant' });
   assert.equal(inconnu.status, STATUS.ERROR);
+});
+
+test('un effacement de badge n appelle pas l API et remet le badge a neutre', async () => {
+  const { api, resolver } = setup({ matches: [{ id: 'a', score: 0.99 }] });
+
+  const result = await resolver.handle({ type: MSG.CLEAR_BADGE });
+
+  assert.equal(badgeState(result.status), 'none');
+  assert.deepEqual(api.calls.resolve, []);
+  assert.deepEqual(api.calls.character, []);
+});
+
+test('seuls resolve et clear-badge pilotent le badge de l onglet', () => {
+  assert.ok(BADGE_MESSAGES.has(MSG.RESOLVE));
+  assert.ok(BADGE_MESSAGES.has(MSG.CLEAR_BADGE));
+  assert.ok(!BADGE_MESSAGES.has(MSG.CHARACTER), 'ouvrir une fiche depuis le selecteur ne touche pas au badge');
+  assert.ok(!BADGE_MESSAGES.has(MSG.CLEAR_CACHE));
 });
 
 // --- traduction des erreurs ---

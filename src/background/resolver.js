@@ -21,6 +21,9 @@ export function toFailure(error) {
   return { status: STATUS.ERROR };
 }
 
+// messages dont la reponse pilote le badge de l onglet emetteur
+export const BADGE_MESSAGES = new Set([MSG.RESOLVE, MSG.CLEAR_BADGE]);
+
 export function badgeState(status) {
   if (status === STATUS.MATCH) return 'match';
   if (status === STATUS.AMBIGUOUS) return 'ambiguous';
@@ -62,6 +65,9 @@ export function createResolver({ api, cache, getSettings }) {
 
   async function handle(message) {
     if (message.type === MSG.RESOLVE) return resolveName(message.name, message.site);
+    // le content script quitte une page produit : Chrome ne reinitialise le badge
+    // d un onglet que sur une vraie navigation, pas sur un changement d URL SPA
+    if (message.type === MSG.CLEAR_BADGE) return { status: STATUS.NOT_FOUND };
     if (message.type === MSG.CHARACTER) {
       return { status: STATUS.MATCH, character: await loadCharacter(message.id) };
     }
