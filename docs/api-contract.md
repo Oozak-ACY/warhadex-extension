@@ -191,7 +191,7 @@ rendues comme du texte simple, pas comme des liens.
 | Code | Signification | Comportement client |
 |---|---|---|
 | `404` | Fiche ou resolution inconnue. | Etat "personnage introuvable" dans le panneau. |
-| `429` | Quota depasse. Le serveur devrait inclure l en-tete `Retry-After` (secondes). | Le client lit `Retry-After` mais l affiche via le meme message d erreur generique que les autres pannes serveur ; ce n est pas distingue visuellement des `5xx`. C est un choix delibere pour garder l interface simple. |
+| `429` | Quota depasse. Le serveur devrait inclure l en-tete `Retry-After` (secondes). | Le client extrait la valeur de `Retry-After` en interne mais ne l affiche pas : le `429` est signale a l utilisateur via le meme message d erreur generique que les autres pannes serveur, sans distinction visuelle avec un `5xx`. C est un choix delibere pour garder l interface simple. |
 | `5xx` | Erreur serveur. | Etat d erreur generique. |
 | Reseau injoignable / timeout | Panne reseau, API arretee, mauvaise URL. | Etat "hors ligne". |
 | URL d API absente ou invalide dans les reglages | Configuration manquante. | Etat "API non configuree". Ce cas couvre a la fois une `apiBaseUrl` vide et une `apiBaseUrl` qui n est pas une URL valide : les deux produisent le meme etat cote client. |
