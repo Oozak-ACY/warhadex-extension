@@ -57,7 +57,18 @@ async function setup({ head = '', body = '', url = 'https://www.example.com/prod
     return null;
   }
 
-  return { doc: dom.window.document, calls, start: mod.start, findLauncherButton, findPanelRoot };
+  function findPanelShadow() {
+    for (const child of dom.window.document.body.children) {
+      if (child.shadowRoot?.querySelector('.wx-root')) return child.shadowRoot;
+    }
+    return null;
+  }
+
+  return { doc: dom.window.document, calls, start: mod.start, findLauncherButton, findPanelRoot, findPanelShadow };
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 test('start ne monte rien quand showLauncher est desactive', async () => {
@@ -120,4 +131,100 @@ test('start masque le lanceur quand la resolution renvoie not-found', async () =
   const button = findLauncherButton();
   assert.ok(button, 'le lanceur doit etre monte, meme masque');
   assert.equal(button.hidden, true);
+});
+
+// Regression: a sendMessage rejection (sleeping service worker, invalidated context)
+// must not leak as an unhandled rejection, must show the error state, must hide the
+// launcher, and - since this is not a definitive answer about the product - must not
+// leave `dernier` armed, so a later re-detection of the same product retries instead
+// of being silently skipped by the dedupe guard.
+test('un rejet de sendMessage affiche l erreur, masque le lanceur et permet une nouvelle tentative', async () => {
+  let resolveCalls = 0;
+  const { doc, calls, start, findLauncherButton, findPanelShadow } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      resolveCalls += 1;
+      if (resolveCalls === 1) throw new Error('service worker endormi');
+      return { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } };
+    }
+  });
+
+  await start();
+
+  assert.equal(calls.length, 1, 'la premiere tentative doit avoir ete faite');
+  assert.equal(findLauncherButton().hidden, true, 'le lanceur doit etre masque apres un rejet');
+  assert.equal(
+    findPanelShadow().querySelector('.wx-state')?.textContent,
+    'Une erreur est survenue lors de la recuperation de la fiche',
+    'le panneau doit afficher l etat erreur'
+  );
+
+  // simuler une navigation SPA vers une autre URL du meme produit (le titre og
+  // n a pas change) pour verifier que le garde-fou de deduplication a bien ete leve
+  doc.defaultView.history.pushState({}, '', '/autre-chemin');
+  await wait(550);
+
+  assert.equal(calls.length, 2, 'la reponse en erreur ne doit pas bloquer une nouvelle tentative');
+  assert.equal(findLauncherButton().hidden, false, 'le lanceur doit redevenir visible apres le succes');
+  assert.equal(findPanelShadow().querySelector('.wx-state'), null, 'l etat erreur ne doit plus etre affiche');
+});
+
+// Regression (minor, same code path): a resolved-but-non-definitive status (OFFLINE,
+// ERROR) must also clear `dernier`, even though sendMessage itself did not reject.
+test('un statut offline efface le garde-fou pour permettre une nouvelle tentative', async () => {
+  let resolveCalls = 0;
+  const { doc, calls, start, findLauncherButton } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      resolveCalls += 1;
+      if (resolveCalls === 1) return { status: STATUS.OFFLINE };
+      return { status: STATUS.MATCH, character: { id: 'marneus-calgar', name: 'Marneus Calgar' } };
+    }
+  });
+
+  await start();
+
+  assert.equal(calls.length, 1);
+  // OFFLINE laisse le lanceur visible (le clic ouvre le panneau sur le message d etat)
+  assert.equal(findLauncherButton().hidden, false);
+
+  doc.defaultView.history.pushState({}, '', '/autre-chemin');
+  await wait(550);
+
+  assert.equal(calls.length, 2, 'un statut offline ne doit pas bloquer une nouvelle tentative');
+});
+
+// Regression: a rejected sendMessage from the match-picker flow (ouvrirFiche) must
+// also surface the error state instead of escaping as an unhandled rejection.
+test('un rejet de sendMessage dans ouvrirFiche affiche l etat erreur', async () => {
+  const { doc, start, findPanelShadow } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type === MSG.RESOLVE) {
+        return {
+          status: STATUS.AMBIGUOUS,
+          matches: [{ id: 'a', name: 'Alpha', faction: 'Chaos' }]
+        };
+      }
+      if (message.type === MSG.CHARACTER) throw new Error('service worker endormi');
+      return null;
+    }
+  });
+
+  await start();
+
+  const shadow = findPanelShadow();
+  const bouton = shadow.querySelector('.wx-match');
+  assert.ok(bouton, 'un bouton de correspondance doit etre affiche');
+
+  bouton.dispatchEvent(new doc.defaultView.Event('click', { bubbles: true }));
+  await wait(0);
+
+  assert.equal(
+    shadow.querySelector('.wx-state')?.textContent,
+    'Une erreur est survenue lors de la recuperation de la fiche',
+    'le panneau doit afficher l etat erreur apres le rejet'
+  );
 });

@@ -11,7 +11,14 @@ let launcher;
 let dernier = null;
 
 async function ouvrirFiche(id) {
-  const reponse = await browser.runtime.sendMessage({ type: MSG.CHARACTER, id });
+  let reponse;
+  try {
+    reponse = await browser.runtime.sendMessage({ type: MSG.CHARACTER, id });
+  } catch {
+    // service worker endormi ou contexte invalide : pas de fuite de rejet non gere
+    panel.showState(STATUS.ERROR);
+    return;
+  }
   if (reponse?.status === STATUS.MATCH) panel.showCharacter(reponse.character);
   else panel.showState(reponse?.status ?? STATUS.ERROR);
 }
@@ -33,15 +40,31 @@ async function analyser() {
   if (trouve.normalized === dernier) return;
   dernier = trouve.normalized;
 
-  const reponse = await browser.runtime.sendMessage({
-    type: MSG.RESOLVE,
-    name: trouve.normalized,
-    site: trouve.site
-  });
+  let reponse;
+  try {
+    reponse = await browser.runtime.sendMessage({
+      type: MSG.RESOLVE,
+      name: trouve.normalized,
+      site: trouve.site
+    });
+  } catch {
+    // service worker endormi ou contexte invalide : ce n est pas une reponse
+    // definitive, donc on desarme le garde-fou pour permettre une nouvelle tentative
+    dernier = null;
+    launcher.hide();
+    panel.showState(STATUS.ERROR);
+    return;
+  }
 
   if (!reponse || reponse.status === STATUS.NOT_FOUND) {
     launcher.hide();
     return;
+  }
+
+  // OFFLINE et ERROR ne sont pas des reponses definitives sur ce produit :
+  // on desarme le garde-fou pour qu une prochaine navigation SPA reessaie
+  if (reponse.status === STATUS.OFFLINE || reponse.status === STATUS.ERROR) {
+    dernier = null;
   }
 
   launcher.show();
