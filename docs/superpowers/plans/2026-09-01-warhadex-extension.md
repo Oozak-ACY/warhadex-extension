@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Manifest V3. Socles de version : Chrome 111+, Firefox 109+ (socle MV3 de Gecko), Safari 16.4+.
+- Manifest V3. Socles de version : Chrome 111+, Firefox 116+ (socle Gecko de `optional_host_permissions`), Safari 16.4+.
 - Aucune dependance runtime. `jsdom` est la seule devDependency, reservee aux tests.
 - Aucun bundler. Les content scripts MV3 ne supportant pas `import` statique, l'entree est un script classique qui charge les modules par `import()` dynamique sur `browser.runtime.getURL()`. Tous les modules charges ainsi doivent figurer dans `web_accessible_resources`.
 - Style de code : commentaires concis et uniquement si necessaires, sans ponctuation finale ni emoji. Aucun `console.log` de debug dans le code livre.
@@ -284,7 +284,7 @@ Surcharges fusionnees par le build. `background.service_worker` est retire par l
   "browser_specific_settings": {
     "gecko": {
       "id": "warhadex@localhost",
-      "strict_min_version": "109.0"
+      "strict_min_version": "116.0"
     }
   }
 }

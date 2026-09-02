@@ -43,5 +43,5 @@ test('les permissions d hote facultatives couvrent le bouclage http sans ouvrir 
 test('firefox declare un socle de version compatible manifest v3', () => {
   const firefox = JSON.parse(readFileSync('dist/firefox/manifest.json', 'utf8'));
   const min = Number(firefox.browser_specific_settings.gecko.strict_min_version.split('.')[0]);
-  assert.ok(min >= 109, `Manifest V3 exige Firefox 109 ou superieur, declare : ${min}`);
+  assert.ok(min >= 116, `optional_host_permissions exige Firefox 116 ou superieur, declare : ${min}`);
 });

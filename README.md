@@ -29,9 +29,9 @@ n'est necessaire pour developper l'extension (pas de bundler, pas de
 dependance runtime).
 
 Cote navigateur, l'extension vise Manifest V3 : Chrome 111 ou superieur,
-Firefox 109 ou superieur (version a partir de laquelle Gecko prend en charge
-Manifest V3, et valeur declaree en `strict_min_version`), Safari 16.4 ou
-superieur.
+Firefox 116 ou superieur (version a partir de laquelle Gecko prend en charge
+`optional_host_permissions`, requis par le flux de configuration de l'API, et
+valeur declaree en `strict_min_version`), Safari 16.4 ou superieur.
 
 ## Structure du projet
 
@@ -313,14 +313,14 @@ lore protege.
 
 ## Confidentialite
 
-La cle d'API renseignee dans les reglages ne quitte jamais le service
-worker : le script de contenu n'emet aucune requete vers un hote distant, et
-seul le nom de produit normalise ainsi que le domaine d'origine sont envoyes
-a l'API que vous avez vous-meme configuree.
+La cle d'API renseignee dans les reglages n'est jamais transmise a un script
+de contenu ni a une page web : le script de contenu n'emet aucune requete
+vers un hote distant, et seul le nom de produit normalise ainsi que le
+domaine d'origine sont envoyes a l'API que vous avez vous-meme configuree.
 
-Elle ne quitte pas non plus la machine par le stockage : la cle est
-conservee dans `storage.local`, jamais dans `storage.sync`, qui televerserait
-la valeur vers le service de synchronisation de votre navigateur. Les autres
+Elle est egalement conservee localement : la cle est stockee dans
+`storage.local`, jamais dans `storage.sync`, ce qui evite de la televerser
+vers le service de synchronisation de votre navigateur. Les autres
 reglages (adresse de l'API, duree du cache, affichage du lanceur) sont eux
 dans `storage.sync` et suivent donc votre profil. Le bouton "Vider le cache"
 ne supprime que les entrees de cache prefixees, jamais vos reglages.
