@@ -1,15 +1,24 @@
 import { ApiError } from '../core/api-client.js';
+import { indexAbilities, mapDatasheet } from '../core/datasheet-mapper.js';
 import { MSG, STATUS } from '../core/messages.js';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 export const NEGATIVE_TTL_MS = DAY_MS;
+// le referentiel d aptitudes ne bouge qu aux mises a jour de regles
+export const ABILITIES_TTL_MS = 30 * DAY_MS;
+// un titre marchand porte souvent la faction ou la gamme devant le nom de l unite,
+// et l API n a pas de recherche approchante : on retente en retirant les mots de tete
+export const TRONCATURES_MAX = 3;
 export const CERTAIN_SCORE = 0.8;
 
-// Spec section 5 : une correspondance est certaine si elle est unique et que son
-// score depasse 0.8. Conjonction stricte : montrer le mauvais personnage avec
-// assurance est un echec plus grave qu un selecteur a une seule entree
+// Une correspondance est certaine si son score depasse 0.8 et qu elle bat
+// strictement la suivante. La spec exigeait l unicite, ce qui supposait une API
+// ne rendant que de bons candidats ; celle-ci rend tout ce qui depasse un seuil
+// bas, donc l unicite ferait apparaitre un selecteur sur presque chaque page.
+// L intention de surete tient : deux candidats a egalite en tete restent ambigus
 function estCertaine(matches) {
-  return matches.length === 1 && matches[0].score > CERTAIN_SCORE;
+  if (!matches.length || matches[0].score <= CERTAIN_SCORE) return false;
+  return matches.length === 1 || matches[0].score > matches[1].score;
 }
 
 export function toFailure(error) {
@@ -36,21 +45,85 @@ export function createResolver({ api, cache, getSettings }) {
     return Math.max(1, Number(cacheTtlDays) || 7) * DAY_MS;
   }
 
+  // Les aptitudes Core et Faction d une datasheet arrivent vides avec un
+  // ability_id. Le referentiel entier tient en un appel, donc on le prend une
+  // fois et on le garde
+  async function abilityIndex() {
+    const cached = await cache.get('abilities');
+    if (cached !== undefined) return { index: indexAbilities(cached), complet: true };
+
+    let items;
+    try {
+      items = await api.abilities();
+    } catch {
+      // referentiel injoignable : la fiche reste lisible, les aptitudes Core
+      // s afficheront sans leur texte
+      return { index: new Map(), complet: false };
+    }
+
+    await cache.set('abilities', items, ABILITIES_TTL_MS);
+    return { index: indexAbilities(items), complet: true };
+  }
+
   async function loadCharacter(id) {
     const cached = await cache.get(`character:${id}`);
     if (cached !== undefined) return cached;
 
-    const character = await api.character(id);
-    await cache.set(`character:${id}`, character, await ficheTtl());
+    const aggregate = await api.character(id);
+    const { index, complet } = await abilityIndex();
+    const character = mapDatasheet(aggregate, index);
+
+    // une fiche mappee sans referentiel est degradee : la garder une journee
+    // seulement pour qu elle se repare d elle meme
+    await cache.set(`character:${id}`, character, complet ? await ficheTtl() : NEGATIVE_TTL_MS);
     return character;
   }
 
-  async function resolveName(name, site) {
+  // On retient la meilleure tentative et non la premiere qui repond : retirer un
+  // mot de plus fait souvent passer une correspondance approximative a exacte,
+  // par exemple custodes custodian guard qui score 77 la ou custodian guard score 100
+  async function chercher(name) {
+    let requete = name;
+    let meilleur = { matches: [], requete: name, score: -1 };
+
+    for (let essai = 0; essai <= TRONCATURES_MAX; essai += 1) {
+      const matches = await api.resolve(requete);
+      const score = matches.length ? matches[0].score : -1;
+
+      if (score > meilleur.score) meilleur = { matches, requete, score };
+      if (score >= 1) break;
+
+      const espace = requete.indexOf(' ');
+      if (espace === -1) break;
+      requete = requete.slice(espace + 1);
+    }
+
+    return meilleur;
+  }
+
+  // l enrichissement est du confort d affichage, jamais une dependance
+  async function enrichir(matches, requete) {
+    try {
+      const details = await api.describe(requete);
+      const factions = new Map(details.map((detail) => [detail.id, detail.faction]));
+      return matches.map((match) => ({ ...match, faction: factions.get(match.id) ?? '' }));
+    } catch {
+      return matches;
+    }
+  }
+
+  async function resolveName(name) {
     const key = `resolve:${name}`;
     let matches = await cache.get(key);
 
     if (matches === undefined) {
-      matches = await api.resolve(name, site);
+      const trouve = await chercher(name);
+      matches = trouve.matches;
+      // des que le selecteur va s afficher, la faction est necessaire : sans elle
+      // deux Terminator Squad sont indistinguables
+      if (matches.length && !estCertaine(matches)) {
+        matches = await enrichir(matches, trouve.requete);
+      }
       // cache negatif court : ne pas solliciter le serveur sur chaque page sans personnage
       await cache.set(key, matches, matches.length ? await ficheTtl() : NEGATIVE_TTL_MS);
     }
@@ -64,7 +137,7 @@ export function createResolver({ api, cache, getSettings }) {
   }
 
   async function handle(message) {
-    if (message.type === MSG.RESOLVE) return resolveName(message.name, message.site);
+    if (message.type === MSG.RESOLVE) return resolveName(message.name);
     // le content script quitte une page produit : Chrome ne reinitialise le badge
     // d un onglet que sur une vraie navigation, pas sur un changement d URL SPA
     if (message.type === MSG.CLEAR_BADGE) return { status: STATUS.NOT_FOUND };
@@ -78,5 +151,5 @@ export function createResolver({ api, cache, getSettings }) {
     return { status: STATUS.ERROR };
   }
 
-  return { handle, resolveName, loadCharacter };
+  return { handle, resolveName, loadCharacter, abilityIndex, chercher };
 }
