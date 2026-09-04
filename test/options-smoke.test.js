@@ -12,7 +12,7 @@ const browserStub = {
     sync: { get: async () => ({}), set: async () => {} },
     local: { get: async () => ({}), set: async () => {} }
   },
-  permissions: { request: async () => true }
+  permissions: { request: async () => true, contains: async () => false }
 };
 globalThis.browser = browserStub;
 

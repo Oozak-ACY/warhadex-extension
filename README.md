@@ -118,9 +118,11 @@ L'extension ne fonctionne pas tant qu'elle n'a pas d'API a interroger.
 5. La duree du cache (en jours) et l'activation du lanceur sur les pages
    produit sont egalement reglables depuis cette page.
 
-L'adresse de base ne porte pas de suffixe de version : en developpement,
-`http://localhost:8000`. Les routes appelees et les champs lus sont documentes
-dans `docs/api-contract.md`.
+L'adresse de base est preremplie sur `http://localhost:8000` et l'acces local
+est accorde des l'installation : dans le cas courant il n'y a rien a saisir ni a
+autoriser. Le champ reste modifiable pour pointer une API distante, auquel cas
+le navigateur demande l'autorisation pour ce domaine. Les routes appelees et les
+champs lus sont documentes dans `docs/api-contract.md`.
 
 ## Serveur mock
 
@@ -161,7 +163,7 @@ npm test
 Execute `node --test "test/**/*.test.js"` (la forme repertoire, `node --test
 test/`, echoue avec `MODULE_NOT_FOUND` sur Node 24 sous Windows ; utiliser
 le motif glob ci-dessus). A la date de redaction de ce document, la suite
-compte 144 tests, tous passants, couvrant entre autres la detection sur
+compte 146 tests, tous passants, couvrant entre autres la detection sur
 fixtures HTML capturees des quatre sites pris en charge, le client d'API
 (succes, 404, 429, panne reseau), le cache, son expiration et son cache
 negatif, la logique du service worker (regle de certitude, TTL, badge,
@@ -216,7 +218,7 @@ avec ou sans adaptateur dedie.
 **Cette section documente un travail non realise, et non un simple
 complement recommande.** L'environnement dans lequel ce projet a ete
 implemente ne peut pas ouvrir `chrome://extensions` ni aucun navigateur
-reel : toute la validation a ete faite par des tests automatises (144 tests
+reel : toute la validation a ete faite par des tests automatises (146 tests
 `node --test`, y compris des tests d'integration jsdom qui montent le
 panneau, simulent des clics d'onglets, le Shadow DOM et la navigation SPA).
 Personne n'a donc encore confirme que le service worker s'enregistre

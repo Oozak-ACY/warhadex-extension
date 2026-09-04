@@ -69,7 +69,17 @@ async function setup({ head = '', body = '', url = 'https://www.example.com/prod
     return null;
   }
 
-  return { doc: dom.window.document, calls, start: mod.start, findLauncherButton, findPanelRoot, findPanelShadow };
+  const panelText = () => findPanelRoot()?.textContent ?? '';
+
+  return {
+    doc: dom.window.document,
+    calls,
+    start: mod.start,
+    findLauncherButton,
+    findPanelRoot,
+    findPanelShadow,
+    panelText
+  };
 }
 
 function wait(ms) {
@@ -161,17 +171,16 @@ test('quitter une fiche produit pour une page sans personnage efface le badge', 
   );
 });
 
-test('start masque le lanceur quand la resolution renvoie not-found', async () => {
-  const { start, findLauncherButton } = await setup({
+test('une page produit sans personnage reconnu le dit au lieu de rester muette', async () => {
+  const { start, findLauncherButton, panelText } = await setup({
     head: '<meta property="og:title" content="Personnage Inconnu">',
     sendMessage: () => ({ status: STATUS.NOT_FOUND })
   });
 
   await start();
 
-  const button = findLauncherButton();
-  assert.ok(button, 'le lanceur doit etre monte, meme masque');
-  assert.equal(button.hidden, true);
+  assert.equal(findLauncherButton().hidden, false, 'le lanceur reste ouvrable');
+  assert.match(panelText(), /Aucun personnage trouve/);
 });
 
 // Regression: a sendMessage rejection (sleeping service worker, invalidated context)
@@ -371,4 +380,59 @@ test('un rejet de sendMessage dans ouvrirFiche affiche l etat erreur', async () 
     'Une erreur est survenue lors de la recuperation de la fiche',
     'le panneau doit afficher l etat erreur apres le rejet'
   );
+});
+
+
+// Regression (signalee a l usage) : sur une SPA le DOM change apres l URL. Relire
+// le titre trop tot renvoie encore le produit qu on vient de quitter, et le garde
+// anti-doublon coupait alors court sans armer l observateur, laissant le panneau
+// fige sur le personnage precedent jusqu au rechargement de la page.
+test('le panneau ne garde pas le personnage precedent apres une navigation SPA', async () => {
+  const { doc, calls, start, panelText, findLauncherButton } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      return { status: STATUS.MATCH, character: { id: message.name, name: message.name } };
+    }
+  });
+
+  await start();
+  assert.match(panelText(), /marneus calgar/);
+
+  // l URL change mais le DOM porte encore l ancien titre
+  doc.defaultView.history.pushState({}, '', '/autre-produit');
+  await wait(550);
+
+  assert.doesNotMatch(panelText(), /marneus calgar/, 'la fiche precedente ne doit plus etre affichee');
+  assert.equal(findLauncherButton().hidden, true, 'rien a ouvrir tant que le nouveau titre n est pas la');
+  assert.equal(calls.filter((c) => c.type === MSG.RESOLVE).length, 1, 'aucune resolution sur un titre perime');
+
+  // la SPA finit par mettre le DOM a jour
+  doc.querySelector('meta[property="og:title"]').setAttribute('content', 'Ghazghkull Thraka');
+  doc.body.append(doc.createElement('div'));
+  await wait(100);
+
+  assert.match(panelText(), /ghazghkull thraka/, 'le nouveau personnage doit remplacer l ancien');
+  assert.equal(findLauncherButton().hidden, false);
+});
+
+test('revenir sur le meme produit finit par reafficher sa fiche', async () => {
+  const { doc, start, panelText } = await setup({
+    head: '<meta property="og:title" content="Marneus Calgar">',
+    sendMessage: (message) => {
+      if (message.type !== MSG.RESOLVE) return null;
+      return { status: STATUS.MATCH, character: { id: message.name, name: message.name } };
+    }
+  });
+
+  await start();
+
+  // navigation vers une URL differente qui montre le meme produit : le titre ne
+  // changera jamais, l observateur doit finir par accepter ce que la page montre
+  doc.defaultView.history.pushState({}, '', '/meme-produit-autre-url');
+  await wait(550);
+  assert.doesNotMatch(panelText(), /marneus calgar/, 'le panneau est vide pendant l attente');
+
+  await wait(10200);
+  assert.match(panelText(), /marneus calgar/, 'au bout du delai la page est acceptee telle quelle');
 });

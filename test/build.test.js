@@ -34,10 +34,13 @@ test('build produit les trois cibles avec le bon manifeste', () => {
 // rien enregistrer. On refuse en revanche tout http://*/* general.
 test('les permissions d hote facultatives couvrent le bouclage http sans ouvrir tout http', () => {
   const chrome = JSON.parse(readFileSync('dist/chrome/manifest.json', 'utf8'));
-  for (const motif of ['https://*/*', 'http://localhost/*', 'http://127.0.0.1/*']) {
-    assert.ok(chrome.optional_host_permissions.includes(motif), `motif manquant : ${motif}`);
+  // l API de reference est locale et accordee des l installation : plus rien a
+  // saisir ni a autoriser dans le cas courant
+  for (const motif of ['http://localhost/*', 'http://127.0.0.1/*']) {
+    assert.ok(chrome.host_permissions.includes(motif), `motif local manquant : ${motif}`);
   }
-  assert.ok(!chrome.optional_host_permissions.includes('http://*/*'), 'http general ne doit pas etre declare');
+  assert.deepEqual(chrome.optional_host_permissions, ['https://*/*'], 'seule une API distante reste optionnelle');
+  assert.ok(!chrome.host_permissions.includes('http://*/*'), 'http general ne doit pas etre declare');
 });
 
 test('firefox declare un socle de version compatible manifest v3', () => {

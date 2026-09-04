@@ -2,7 +2,7 @@ import { el } from './el.js';
 import { STATUS } from '../../../core/messages.js';
 
 const MESSAGES = {
-  [STATUS.NOT_FOUND]: 'Aucun personnage reconnu sur cette page',
+  [STATUS.NOT_FOUND]: 'Aucun personnage trouve pour le moment',
   [STATUS.NOT_CONFIGURED]: 'Renseignez l adresse de votre API dans les options de Warhadex',
   [STATUS.OFFLINE]: 'Votre API est injoignable',
   [STATUS.AMBIGUOUS]: 'Plusieurs personnages correspondent',

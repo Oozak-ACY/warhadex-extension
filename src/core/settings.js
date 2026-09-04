@@ -1,7 +1,10 @@
 import browser from '../vendor/browser.js';
 
+export const DEFAUT_API = 'http://localhost:8000';
+
 export const DEFAULTS = {
-  apiBaseUrl: '',
+  // l API de reference est locale : l extension fonctionne sans configuration
+  apiBaseUrl: DEFAUT_API,
   apiKey: '',
   showLauncher: true,
   cacheTtlDays: 7

@@ -12,6 +12,9 @@ const OBSERVATION_MS = 10000;
 let panel;
 let launcher;
 let dernier = null;
+// nom detecte sur l URL precedente : sur une SPA le DOM change apres l URL, et
+// relire le titre trop tot renvoie encore celui du produit qu on vient de quitter
+let perime = null;
 let arreterObservation = null;
 
 // les reponses qui ne tranchent pas sur ce produit precis desarment le garde-fou
@@ -30,11 +33,22 @@ function observerApparition() {
   annulerObservation();
 
   const observer = new window.MutationObserver(() => {
-    if (!detect(document, location.href)) return;
+    const trouve = detect(document, location.href);
+    if (!trouve) return;
+    // le DOM porte encore le produit precedent : continuer d attendre
+    if (perime && trouve.normalized === perime) return;
     annulerObservation();
     analyser({ reessayer: false });
   });
-  const timer = window.setTimeout(annulerObservation, OBSERVATION_MS);
+
+  // au bout du delai on accepte ce que la page montre, meme inchange : une
+  // navigation peut legitimement revenir sur le meme produit
+  const timer = window.setTimeout(() => {
+    annulerObservation();
+    if (perime === null) return;
+    perime = null;
+    analyser({ reessayer: false });
+  }, OBSERVATION_MS);
 
   arreterObservation = () => {
     observer.disconnect();
@@ -76,6 +90,13 @@ async function analyser({ reessayer = true } = {}) {
     return;
   }
 
+  if (perime && trouve.normalized === perime) {
+    // titre encore perime : ne rien afficher plutot que la fiche precedente
+    if (reessayer) observerApparition();
+    return;
+  }
+
+  perime = null;
   annulerObservation();
   if (trouve.normalized === dernier) return;
   dernier = trouve.normalized;
@@ -106,7 +127,10 @@ async function analyser({ reessayer = true } = {}) {
   }
 
   if (reponse.status === STATUS.NOT_FOUND) {
-    launcher.hide();
+    // une page produit sans personnage reconnu merite de le dire, contrairement
+    // a une page sans produit du tout ou l extension reste muette
+    panel.showState(STATUS.NOT_FOUND);
+    launcher.show();
     return;
   }
 
@@ -129,6 +153,11 @@ export async function start() {
   observeUrlChanges(window, () => {
     annulerObservation();
     panel.close();
+    panel.clear();
+    launcher.hide();
+    // ce qui etait affiche appartient a l URL qu on vient de quitter
+    perime = dernier;
+    dernier = null;
     analyser();
   });
 }

@@ -70,6 +70,14 @@ export async function createPanel({ doc, onSelect }) {
   return {
     open,
     close: closePanel,
+
+    // vide le panneau sans le detruire : pendant une navigation SPA le contenu
+    // precedent ne doit plus etre reouvrable
+    clear() {
+      tabs.replaceChildren();
+      body.replaceChildren();
+    },
+
     destroy: () => {
       doc.removeEventListener('keydown', onKeydown);
       host.remove();

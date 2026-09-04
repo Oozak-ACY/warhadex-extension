@@ -36,10 +36,14 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
-  // la demande doit partir du geste utilisateur, donc avant toute attente
+  // la demande doit partir du geste utilisateur, donc avant toute attente.
+  // localhost est declare en host_permissions : rien a demander dans le cas
+  // courant, ou l utilisateur garde l API de reference
   let accorde;
   try {
-    accorde = await browser.permissions.request({ origins: [origine] });
+    accorde =
+      (await browser.permissions.contains({ origins: [origine] })) ||
+      (await browser.permissions.request({ origins: [origine] }));
   } catch {
     // le navigateur refuse le motif : origine non couverte par
     // optional_host_permissions, ou schema non supporte

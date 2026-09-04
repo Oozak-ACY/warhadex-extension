@@ -23,9 +23,15 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
-  "permissions": ["storage"],
-  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "permissions": [
+    "storage"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
   "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
     "https://*.warhammer.com/*",
     "https://*.elementgames.co.uk/*",
     "https://*.waylandgames.co.uk/*",
@@ -39,14 +45,21 @@
         "https://*.waylandgames.co.uk/*",
         "https://*.philibertnet.com/*"
       ],
-      "js": ["content/content.js"],
+      "js": [
+        "content/content.js"
+      ],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content/*", "core/*", "vendor/*", "assets/icons/*"],
+      "resources": [
+        "content/*",
+        "core/*",
+        "vendor/*",
+        "assets/icons/*"
+      ],
       "matches": [
         "https://*.warhammer.com/*",
         "https://*.elementgames.co.uk/*",
