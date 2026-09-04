@@ -137,6 +137,26 @@
   font-weight: 500;
 }
 
+details.wx-ability > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+  padding: 4px 0;
+}
+
+details.wx-ability > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.wx-ability > summary::before {
+  color: #94a3b8;
+  content: '+ ';
+}
+
+details.wx-ability[open] > summary::before {
+  content: '- ';
+}
+
 .wx-keywords {
   display: flex;
   flex-wrap: wrap;

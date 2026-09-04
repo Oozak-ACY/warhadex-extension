@@ -180,3 +180,47 @@ test('renderDatasheet retombe sur le libelle brut quand le nombre est illisible'
   });
   assert.match(node.querySelector('.wx-points').textContent, /par vehicule 90 pts/);
 });
+
+test('renderAbilities replie les aptitudes generiques et laisse les autres ouvertes', () => {
+  const node = renderAbilities(doc, {
+    ...character,
+    abilities: [
+      { name: 'Leader', type: 'Core', text: 'texte generique tres long' },
+      { name: 'Reanimation Protocols', type: 'Faction', text: 'texte de faction' },
+      { name: 'Optimised for Slaughter', type: 'Datasheet', text: 'texte propre au modele' }
+    ]
+  });
+
+  const replies = [...node.querySelectorAll('details.wx-ability')];
+  assert.deepEqual(
+    replies.map((n) => n.querySelector('summary').textContent),
+    ['Leader (Core)', 'Reanimation Protocols (Faction)']
+  );
+  for (const repli of replies) {
+    assert.equal(repli.hasAttribute('open'), false, 'les aptitudes generiques restent fermees');
+  }
+
+  // l aptitude propre au modele reste lisible sans clic
+  assert.match(node.textContent, /texte propre au modele/);
+  const propre = [...node.querySelectorAll('div.wx-ability h4')].map((n) => n.textContent);
+  assert.deepEqual(propre, ['Optimised for Slaughter']);
+});
+
+test('renderAbilities garde le texte des aptitudes repliees accessible', () => {
+  const node = renderAbilities(doc, {
+    ...character,
+    abilities: [{ name: 'Leader', type: 'Core', text: 'contenu integral conserve' }]
+  });
+
+  assert.match(node.querySelector('details.wx-ability').textContent, /contenu integral conserve/);
+});
+
+test('renderAbilities n ouvre pas de bloc pour une aptitude sans texte', () => {
+  const node = renderAbilities(doc, {
+    ...character,
+    abilities: [{ name: 'Core', type: 'Core', text: '' }]
+  });
+
+  assert.equal(node.querySelector('details'), null, 'rien a deplier sans texte');
+  assert.match(node.textContent, /Core/);
+});

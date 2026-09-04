@@ -106,6 +106,22 @@ Si ce referentiel est injoignable, la fiche reste servie : les aptitudes non
 resolues affichent leur type sans leur texte, et la fiche n'est mise en cache
 que 24 heures pour qu'elle se repare d'elle-meme au prochain passage.
 
+### Aptitudes generiques repliees
+
+Les aptitudes de type `Core` et `Faction` sont affichees repliees, nom et type
+visibles, texte accessible au clic. Les aptitudes de type `Datasheet` restent
+depliees.
+
+C'est la mise en page de Wahapedia lui-meme, qui liste ces aptitudes en nom seul
+sur une fiche et renvoie leur texte aux regles de faction, et c'est ce que
+demande l'usage : sur une page d'achat on veut d'abord savoir ce que fait ce
+modele-ci. Le volume le justifie aussi. Sur les 70 aptitudes du referentiel la
+mediane est de 607 caracteres, onze depassent 1600 et la plus longue en fait
+3177 ; `Leader`, qui en pese 3091, figure sur presque chaque personnage.
+
+Sur Lokhust Heavy Destroyers, cela ramene le bloc d'aptitudes de 1877 a 417
+caracteres a l'ecran, les 1460 restants etant a un clic.
+
 ### Le champ `html` n'est jamais lu
 
 Les descriptions arrivent en `text` et en `html`, le `html` contenant des
