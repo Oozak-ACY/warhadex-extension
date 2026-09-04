@@ -4,8 +4,10 @@ Ce document decrit les routes et les champs que l'extension utilise reellement.
 Il ne specifie plus une API a implementer : il documente l'integration avec
 l'API existante, telle qu'elle a ete verifiee en direct.
 
-L'adresse de base se regle dans les options de l'extension, sans suffixe de
-version. En developpement c'est typiquement `http://localhost:8000`.
+L'adresse de base est preremplie sur `http://localhost:8000`, sans suffixe de
+version, et l'acces local est accorde des l'installation : dans le cas courant
+il n'y a rien a saisir. Le champ des options reste modifiable pour pointer une
+API distante.
 
 ## Routes utilisees
 
@@ -121,7 +123,7 @@ affichee en texte brut.
 |---|---|
 | adresse absente ou malformee | « Renseignez l'adresse de votre API » |
 | reseau injoignable | « Votre API est injoignable » |
-| `404` | « Aucun personnage reconnu sur cette page » |
+| `404` | « Aucun personnage trouve pour le moment » |
 | `429` | message d'erreur generique |
 | `5xx` ou corps illisible | message d'erreur generique |
 
