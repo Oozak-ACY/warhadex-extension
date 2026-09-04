@@ -51,13 +51,35 @@ export function createApiClient({ getSettings, fetchImpl = fetch }) {
   }
 
   return {
-    async resolve(name, site) {
-      const body = await request('v1/resolve', { q: name, site });
-      return Array.isArray(body?.matches) ? body.matches : [];
+    // /search porte un score, contrairement a /datasheets?q=, et le score pilote
+    // la regle de certitude. Les scores de l API sont sur 100
+    async resolve(name) {
+      const body = await request('search', { q: name, type: 'datasheet', limit: '5' });
+      const items = Array.isArray(body?.items) ? body.items : [];
+      return items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        score: Number(item.score) / 100
+      }));
+    },
+
+    // /search ne rend pas la faction, indispensable pour departager deux
+    // datasheets homonymes. /datasheets?q= la porte, au prix d un appel de plus
+    async describe(name) {
+      const body = await request('datasheets', { q: name, limit: '5' });
+      const items = Array.isArray(body?.items) ? body.items : [];
+      return items.map((item) => ({ id: item.id, faction: item.faction?.name ?? '' }));
     },
 
     character(id) {
-      return request(`v1/characters/${encodeURIComponent(id)}`);
+      return request(`datasheets/${encodeURIComponent(id)}`);
+    },
+
+    // les aptitudes Core et Faction arrivent vides sur une datasheet, avec un
+    // ability_id a resoudre. Le referentiel entier tient en un appel
+    async abilities() {
+      const body = await request('abilities', { limit: '200' });
+      return Array.isArray(body?.items) ? body.items : [];
     }
   };
 }
