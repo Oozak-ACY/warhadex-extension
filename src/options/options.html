@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Options Warhadex</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Warhadex</h1>
+
+    <form id="reglages">
+      <label for="apiBaseUrl">Adresse de votre API</label>
+      <input id="apiBaseUrl" name="apiBaseUrl" type="url" placeholder="https://api.exemple.fr" required>
+      <p class="aide">Warhadex demandera l autorisation d acceder a ce domaine lors de l enregistrement</p>
+
+      <label for="apiKey">Cle d API</label>
+      <input id="apiKey" name="apiKey" type="password" autocomplete="off">
+      <p class="aide">Facultative. Envoyee en en-tete Authorization Bearer</p>
+
+      <label for="cacheTtlDays">Duree du cache en jours</label>
+      <input id="cacheTtlDays" name="cacheTtlDays" type="number" min="1" max="90" value="7">
+
+      <label class="case">
+        <input id="showLauncher" name="showLauncher" type="checkbox" checked>
+        Activer Warhadex sur les pages produit
+      </label>
+
+      <div class="actions">
+        <button type="submit">Enregistrer</button>
+        <button type="button" id="vider">Vider le cache</button>
+      </div>
+    </form>
+
+    <p id="etat" role="status"></p>
+  </main>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

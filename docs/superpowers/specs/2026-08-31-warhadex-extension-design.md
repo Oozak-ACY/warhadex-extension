@@ -81,8 +81,16 @@ qui garantit qu'aucune feuille de style du site marchand ne le traverse et
 reciproquement. Il comporte deux onglets : Regles, affiche par defaut, et
 Histoire, present uniquement si la fiche porte des donnees de lore.
 
-Un lanceur flottant, discret, apparait uniquement quand un personnage a ete
-reconnu. Le clic ouvre le panneau. Aucune ouverture automatique.
+Un lanceur flottant, discret, apparait des que le panneau a quelque chose a
+dire sur la page courante : un personnage reconnu, une liste de
+correspondances a departager, ou un etat d erreur (API non configuree, hors
+ligne, erreur generique). Il reste masque quand rien n'est detecte sur la
+page, et quand la resolution repond explicitement qu'aucun personnage ne
+correspond, cas ou le panneau n'a rien a montrer. Un etat d'erreur ecrit dans
+le panneau est toujours accompagne d'un lanceur permettant de l'ouvrir : une
+erreur que l'utilisateur ne peut pas lire est pire qu'un lanceur sur une page
+ou la resolution a echoue. Le clic ouvre le panneau. Aucune ouverture
+automatique.
 
 Les fonctions de rendu sont pures : fiche vers DOM, sans acces reseau ni
 stockage.
@@ -110,15 +118,21 @@ l'extension demande la permission d'hote correspondante via
 ### 4.5 Flux de donnees
 
 1. Le content script s'execute sur les domaines declares.
-2. `detect` produit un nom normalise, ou rien, auquel cas le flux s'arrete.
+2. `detect` produit un nom normalise, ou rien. Quand il ne produit rien, le
+   flux s'arrete pour ce tour, mais un `MutationObserver` borne surveille le
+   `body` et relance la detection des qu'un noeud utile apparait, pour couvrir
+   les pages rendues cote client comme warhammer.com. Il se deconnecte au
+   premier succes, apres dix secondes, ou au prochain changement d'URL.
 3. Le content script envoie `{ type: 'resolve', name, site }` au service worker.
 4. Le service worker consulte le cache, sinon appelle `GET /v1/resolve`.
 5. En cas de correspondance unique et suffisamment sure, il appelle
    `GET /v1/characters/:id` et renvoie la fiche. En cas de correspondances
    multiples, il renvoie la liste et le panneau affiche un selecteur.
 6. Le content script affiche le lanceur. Le panneau ne s'ouvre qu'au clic.
-7. Sur les SPA, un observateur de `pushState`, `replaceState` et `popstate`
-   relance le cycle a chaque changement d'URL.
+7. Sur les SPA, un sondage periodique de `location.href`, double d'un ecouteur
+   `popstate`, relance le cycle a chaque changement d'URL. Patcher
+   `history.pushState` ne conviendrait pas : le content script vit dans un monde
+   isole et n'intercepterait pas les appels du routeur de la page.
 
 ## 5. Contrat d'API
 
@@ -208,9 +222,17 @@ n'est jamais exposee au content script ni a la page hote.
 Source unique. Un script de build assemble trois repertoires de distribution en
 substituant le manifeste.
 
+Socles de version : Chrome 111 et superieur, Firefox 116 et superieur,
+Safari 16.4 et superieur. Le socle Firefox est impose par
+`optional_host_permissions`, cle de manifeste Gecko 116+ dont depend le flux
+de configuration de l'API ; le support de Manifest V3 lui-meme des Firefox
+109, et l'`import()` dynamique en content script des Firefox 101, sont des
+contraintes reelles mais moins hautes, donc non determinantes.
+
 - Chrome et derives Chromium : `background.service_worker`, MV3 natif.
 - Firefox : `background.scripts` avec `type: module`, plus
-  `browser_specific_settings.gecko.id`, requis pour la publication.
+  `browser_specific_settings.gecko.id`, requis pour la publication, et
+  `strict_min_version` a `116.0`.
 - Safari 16.4 et superieur : meme manifeste que Chrome, puis conversion en
   projet Xcode via `xcrun safari-web-extension-converter`. Cette etape exige
   macOS et n'est pas automatisable depuis ce depot ; elle est documentee dans le

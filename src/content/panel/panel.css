@@ -1,0 +1,200 @@
+:host {
+  all: initial;
+}
+
+.wx-root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2147483647;
+  width: min(420px, 100vw);
+  height: 100vh;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 160ms ease-out;
+  background: #0f172a;
+  color: #e2e8f0;
+  font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.wx-root[data-open='true'] {
+  transform: translateX(0);
+}
+
+.wx-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.wx-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+  border-bottom: 1px solid #334155;
+}
+
+/* une seule vue : pas de barre d onglets, donc pas de bordure residuelle */
+.wx-tabs:empty {
+  display: none;
+}
+
+.wx-tab {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 4px;
+}
+
+.wx-tab[aria-selected='true'] {
+  border-bottom-color: #38bdf8;
+  color: #f8fafc;
+}
+
+.wx-head h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.wx-sub {
+  color: #94a3b8;
+  margin: 2px 0 12px;
+}
+
+.wx-profile-name {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  text-transform: uppercase;
+}
+
+.wx-stats {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(6, 1fr);
+  margin-bottom: 12px;
+}
+
+.wx-stat {
+  background: #1e293b;
+  border-radius: 4px;
+  padding: 6px 2px;
+  text-align: center;
+}
+
+.wx-stat-label {
+  color: #94a3b8;
+  display: block;
+  font-size: 11px;
+}
+
+.wx-stat-value {
+  display: block;
+  font-weight: 600;
+}
+
+.wx-invul {
+  color: #f8fafc;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.wx-points {
+  color: #94a3b8;
+  margin: 0 0 12px;
+}
+
+.wx-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: 100%;
+}
+
+.wx-table th,
+.wx-table td {
+  border-bottom: 1px solid #1e293b;
+  padding: 4px;
+  text-align: left;
+}
+
+.wx-table th {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.wx-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+}
+
+.wx-keywords li {
+  background: #1e293b;
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.wx-books {
+  padding-left: 18px;
+}
+
+.wx-book-meta {
+  color: #94a3b8;
+}
+
+.wx-source {
+  border-top: 1px solid #1e293b;
+  color: #94a3b8;
+  display: block;
+  font-size: 11px;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+
+.wx-source a {
+  color: #38bdf8;
+}
+
+.wx-state {
+  color: #94a3b8;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.wx-match {
+  background: #1e293b;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  margin-bottom: 6px;
+  padding: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-root {
+    transition: none;
+  }
+}
