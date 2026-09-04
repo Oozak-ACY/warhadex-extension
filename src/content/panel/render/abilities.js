@@ -16,7 +16,7 @@ export function renderAbilities(doc, character) {
         'div',
         { class: 'wx-ability' },
         el(doc, 'h4', {}, ability.name),
-        el(doc, 'p', {}, ability.text ?? '')
+        ability.text ? el(doc, 'p', {}, ability.text) : null
       )
     ),
     keywords.length ? el(doc, 'h3', {}, 'Mots cles') : null,

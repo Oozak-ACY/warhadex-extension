@@ -17,7 +17,7 @@ const character = {
   name: 'Marneus Calgar',
   faction: 'Adeptus Astartes',
   role: 'Epic Hero',
-  profile: { m: '5"', t: 5, sv: '2+', w: 6, ld: '5+', oc: 1 },
+  profiles: [{ name: 'MARNEUS CALGAR', m: '5"', t: 5, sv: '2+', w: 6, ld: '5+', oc: 1 }],
   invulnerable: '4+',
   weapons: [
     { name: 'Gantelets', type: 'ranged', range: '18"', a: 3, skill: '2+', s: 4, ap: 0, d: 1, keywords: ['Twin-linked'] },
@@ -135,4 +135,48 @@ test('renderState produit un message par statut', () => {
   for (const status of [STATUS.NOT_FOUND, STATUS.NOT_CONFIGURED, STATUS.OFFLINE, STATUS.ERROR]) {
     assert.ok(renderState(doc, status).textContent.length > 0, `message vide pour ${status}`);
   }
+});
+
+test('renderDatasheet nomme chaque profil quand l unite en porte plusieurs', () => {
+  const escouade = {
+    ...character,
+    profiles: [
+      { name: 'Sergent', m: '6"', t: 4, sv: '3+', w: 3, ld: '6+', oc: 2 },
+      { name: 'Intercessor', m: '6"', t: 4, sv: '3+', w: 2, ld: '6+', oc: 2 }
+    ]
+  };
+  const node = renderDatasheet(doc, escouade);
+
+  assert.equal(node.querySelectorAll('.wx-stats').length, 2);
+  assert.deepEqual(
+    [...node.querySelectorAll('.wx-profile-name')].map((n) => n.textContent),
+    ['Sergent', 'Intercessor']
+  );
+});
+
+test('renderDatasheet n affiche pas le nom du profil quand il n y en a qu un', () => {
+  const node = renderDatasheet(doc, character);
+  assert.equal(node.querySelector('.wx-profile-name'), null);
+  assert.equal(node.querySelectorAll('.wx-stats').length, 1);
+});
+
+test('renderDatasheet accorde le pluriel des paliers de cout', () => {
+  const node = renderDatasheet(doc, {
+    ...character,
+    points: [
+      { models: 1, label: '1 model', cost: 140 },
+      { models: 5, label: '5 models', cost: 80 }
+    ]
+  });
+  const texte = node.querySelector('.wx-points').textContent;
+  assert.match(texte, /1 figurine 140 pts/);
+  assert.match(texte, /5 figurines 80 pts/);
+});
+
+test('renderDatasheet retombe sur le libelle brut quand le nombre est illisible', () => {
+  const node = renderDatasheet(doc, {
+    ...character,
+    points: [{ models: null, label: 'par vehicule', cost: 90 }]
+  });
+  assert.match(node.querySelector('.wx-points').textContent, /par vehicule 90 pts/);
 });

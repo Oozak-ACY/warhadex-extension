@@ -42,13 +42,16 @@ valeur declaree en `strict_min_version`), Safari 16.4 ou superieur.
   la resolution, le cache et la regle de certitude vivent dans `resolver.js`,
   le badge dans `badge.js`, tous deux testables hors navigateur.
 - `src/core` : reglages (`settings.js`), client d'API (`api-client.js`),
-  cache TTL (`cache.js`) et constantes de protocole (`messages.js`).
+  traduction des agregats de l'API vers la fiche affichee
+  (`datasheet-mapper.js`), cache TTL (`cache.js`) et constantes de protocole
+  (`messages.js`).
 - `src/options` : page de reglages de l'extension.
 - `src/vendor` : abstraction `browser`/`chrome` commune aux trois moteurs.
-- `mock-api` : serveur HTTP de reference et jeu de donnees d'exemple pour
-  developper et tester sans API distante reelle.
-- `docs/api-contract.md` : contrat d'API detaille, destine a quiconque
-  implemente le backend.
+- `mock-api` : serveur HTTP reproduisant le sous-ensemble de routes consomme,
+  servi depuis des agregats reels captures, pour developper et tester sans
+  l'API distante.
+- `docs/api-contract.md` : les routes et les champs que l'extension consomme
+  reellement, et comment elle les interprete.
 
 ## Installation en developpement
 
@@ -115,8 +118,9 @@ L'extension ne fonctionne pas tant qu'elle n'a pas d'API a interroger.
 5. La duree du cache (en jours) et l'activation du lanceur sur les pages
    produit sont egalement reglables depuis cette page.
 
-Le format exact des reponses attendues par l'extension est documente dans
-`docs/api-contract.md`.
+L'adresse de base ne porte pas de suffixe de version : en developpement,
+`http://localhost:8000`. Les routes appelees et les champs lus sont documentes
+dans `docs/api-contract.md`.
 
 ## Serveur mock
 
@@ -124,28 +128,29 @@ Le format exact des reponses attendues par l'extension est documente dans
 npm run mock
 ```
 
-Demarre le serveur mock de reference (`mock-api/server.mjs`) sur
-`http://127.0.0.1:8787`, une implementation executable du contrat d'API,
-utile pour renseigner `apiBaseUrl` dans les reglages pendant le
-developpement, et utilisee par les tests automatises.
+Demarre le serveur mock (`mock-api/server.mjs`) sur `http://127.0.0.1:8787`.
+Il reproduit le sous-ensemble de routes que l'extension consomme, sur les memes
+formes de reponse que l'API reelle, et sert deux agregats captures tels quels.
+Il est utilise par les tests automatises et permet de renseigner `apiBaseUrl`
+sans API distante.
 
-Il expose deux routes en lecture seule :
+Routes exposees :
 
-- `GET /v1/resolve?q=<nom>&site=<site>` : renvoie jusqu'a 5 correspondances
-  triees par score de similarite.
-- `GET /v1/characters/:id` : renvoie la fiche complete d'un personnage, ou
-  une erreur 404 si l'identifiant est inconnu.
+- `GET /search?q=&type=datasheet` : correspondances avec un score sur 100.
+- `GET /datasheets?q=` : liste avec faction, utilisee pour departager des
+  homonymes.
+- `GET /datasheets/{id}` : agregat complet, ou une erreur 404.
+- `GET /abilities` : referentiel d'aptitudes.
+- `GET /health`.
 
 Exemple :
 
 ```bash
-curl "http://127.0.0.1:8787/v1/resolve?q=marneus%20calgar"
+curl "http://127.0.0.1:8787/search?q=calgar&type=datasheet"
 ```
 
-Le jeu de donnees (`mock-api/data/characters.json`) utilise des noms de
-personnages et des valeurs de profil plausibles, mais tous les textes de
-regles, de lore et les references d'ouvrages sont explicitement factices :
-voir [Copyright et responsabilite du contenu](#copyright-et-responsabilite-du-contenu).
+Les textes de regles et de lore du jeu de donnees proviennent d'agregats
+reels : voir [Copyright et responsabilite du contenu](#copyright-et-responsabilite-du-contenu).
 
 ## Tests
 
@@ -156,7 +161,7 @@ npm test
 Execute `node --test "test/**/*.test.js"` (la forme repertoire, `node --test
 test/`, echoue avec `MODULE_NOT_FOUND` sur Node 24 sous Windows ; utiliser
 le motif glob ci-dessus). A la date de redaction de ce document, la suite
-compte 110 tests, tous passants, couvrant entre autres la detection sur
+compte 144 tests, tous passants, couvrant entre autres la detection sur
 fixtures HTML capturees des quatre sites pris en charge, le client d'API
 (succes, 404, 429, panne reseau), le cache, son expiration et son cache
 negatif, la logique du service worker (regle de certitude, TTL, badge,
@@ -211,7 +216,7 @@ avec ou sans adaptateur dedie.
 **Cette section documente un travail non realise, et non un simple
 complement recommande.** L'environnement dans lequel ce projet a ete
 implemente ne peut pas ouvrir `chrome://extensions` ni aucun navigateur
-reel : toute la validation a ete faite par des tests automatises (110 tests
+reel : toute la validation a ete faite par des tests automatises (144 tests
 `node --test`, y compris des tests d'integration jsdom qui montent le
 panneau, simulent des clics d'onglets, le Shadow DOM et la navigation SPA).
 Personne n'a donc encore confirme que le service worker s'enregistre
@@ -304,12 +309,17 @@ Games Workshop en detient le droit d'auteur, et l'usage de ce contenu (sa
 constitution, son hebergement, sa republication au travers de votre API)
 est **entierement de votre responsabilite**, pas de celle de ce projet.
 
-Pour cette raison, le jeu de donnees fourni avec le serveur mock
-(`mock-api/data/characters.json`) utilise des noms de personnages reels et
-des valeurs de profil plausibles a des fins de demonstration, mais tous les
-textes d'aptitudes, de lore et les references d'ouvrages sont
-deliberement factices : ce depot ne reproduit aucun texte de regle ou de
-lore protege.
+Cela reste vrai du code livre. En revanche, depuis l'integration a l'API
+reelle, **ce depot contient des extraits de contenu protege** : les fixtures
+de test (`test/fixtures/api/`) et le jeu de donnees du serveur mock
+(`mock-api/data/`) sont des agregats captures tels quels sur une API servant
+des donnees derivees de Wahapedia, textes d'aptitudes et de lore compris.
+
+Le volume est celui d'un echantillon de test — deux datasheets et quatre
+aptitudes — et non d'une base redistribuee, mais la distinction est de fait,
+pas de droit. Si ce depot doit devenir public, il faut soit remplacer ces
+fixtures par des donnees fabriquees, soit les generer a la demande depuis
+votre API plutot que les versionner.
 
 ## Confidentialite
 

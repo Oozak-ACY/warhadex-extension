@@ -75,6 +75,14 @@
   margin: 2px 0 12px;
 }
 
+.wx-profile-name {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  text-transform: uppercase;
+}
+
 .wx-stats {
   display: grid;
   gap: 4px;

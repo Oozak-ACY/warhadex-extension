@@ -13,7 +13,7 @@ const character = {
   name: 'Marneus Calgar',
   faction: 'Adeptus Astartes',
   role: 'Epic Hero',
-  profile: { m: '5"', t: 5, sv: '2+', w: 6, ld: '5+', oc: 1 },
+  profiles: [{ name: 'MARNEUS CALGAR', m: '5"', t: 5, sv: '2+', w: 6, ld: '5+', oc: 1 }],
   weapons: [{ name: 'Gantelets', type: 'melee', range: 'Melee', a: 6, skill: '2+', s: 8, ap: -2, d: 2, keywords: [] }],
   abilities: [],
   keywords: [],
