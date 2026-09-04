@@ -1,35 +1,26 @@
-export function observeUrlChanges(win, callback, delayMs = 400) {
-  const { history } = win;
-  let last = win.location.href;
-  let timer;
+// Un content script s execute dans un monde isole : il partage le DOM avec la
+// page mais pas ses globales. Patcher history.pushState depuis ce monde
+// n intercepte donc pas les appels du routeur de la page, qui vivent dans le
+// monde principal, et une navigation SPA passe totalement inapercue.
+// Comparer periodiquement location.href est le seul moyen fiable sur les trois
+// moteurs sans injecter de script dans la page.
+const INTERVALLE_MS = 400;
 
-  const check = () => {
-    win.clearTimeout(timer);
-    timer = win.setTimeout(() => {
-      if (win.location.href === last) return;
-      last = win.location.href;
-      callback(last);
-    }, delayMs);
+export function observeUrlChanges(win, callback, intervalMs = INTERVALLE_MS) {
+  let derniere = win.location.href;
+
+  const verifier = () => {
+    if (win.location.href === derniere) return;
+    derniere = win.location.href;
+    callback(derniere);
   };
 
-  const pushState = history.pushState;
-  const replaceState = history.replaceState;
-
-  history.pushState = function (...args) {
-    pushState.apply(this, args);
-    check();
-  };
-  history.replaceState = function (...args) {
-    replaceState.apply(this, args);
-    check();
-  };
-
-  win.addEventListener('popstate', check);
+  const timer = win.setInterval(verifier, intervalMs);
+  // popstate ne couvre que les retours arriere, mais il evite d attendre le tick
+  win.addEventListener('popstate', verifier);
 
   return () => {
-    history.pushState = pushState;
-    history.replaceState = replaceState;
-    win.removeEventListener('popstate', check);
-    win.clearTimeout(timer);
+    win.clearInterval(timer);
+    win.removeEventListener('popstate', verifier);
   };
 }

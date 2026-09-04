@@ -3,81 +3,95 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { observeUrlChanges } from '../src/content/spa-observer.js';
 
-function setup(url = 'https://example.com/a') {
-  const dom = new JSDOM('<!doctype html><body>', { url });
+function fenetre() {
+  const dom = new JSDOM('<!doctype html><body>', { url: 'https://example.test/depart' });
   return dom.window;
 }
 
-function wait(win, ms) {
-  return new Promise((resolve) => win.setTimeout(resolve, ms));
+function attendre(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-test('pushState declenche le callback apres le delai', async () => {
-  const win = setup();
-  const urls = [];
-  observeUrlChanges(win, (url) => urls.push(url), 10);
+test('une navigation par pushState est vue malgre le monde isole', async () => {
+  const win = fenetre();
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 20);
 
-  win.history.pushState({}, '', '/b');
-  assert.deepEqual(urls, [], 'ne doit pas encore avoir declenche avant le delai');
+  win.history.pushState({}, '', '/produit-a');
+  await attendre(80);
 
-  await wait(win, 30);
-  assert.deepEqual(urls, [win.location.href]);
+  assert.deepEqual(vues, ['https://example.test/produit-a']);
+  stop();
 });
 
-test('replaceState declenche le callback apres le delai', async () => {
-  const win = setup();
-  const urls = [];
-  observeUrlChanges(win, (url) => urls.push(url), 10);
+// Regression (constatee en navigateur) : la version precedente patchait
+// history.pushState depuis le content script. Dans un monde isole ce patch ne
+// voit pas les appels du routeur de la page, et aucune navigation SPA n etait
+// detectee. La detection ne doit donc dependre d aucune globale de la page.
+test('la detection ne repose pas sur un patch de history', async () => {
+  const win = fenetre();
+  const pushOriginal = win.history.pushState;
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 20);
 
-  win.history.replaceState({}, '', '/c');
-  await wait(win, 30);
-  assert.deepEqual(urls, [win.location.href]);
+  assert.equal(win.history.pushState, pushOriginal, 'history ne doit pas etre modifie');
+
+  // simuler une navigation qui contourne entierement l objet history du monde isole
+  win.history.replaceState({}, '', '/produit-b');
+  await attendre(80);
+
+  assert.deepEqual(vues, ['https://example.test/produit-b']);
+  stop();
 });
 
-test('popstate declenche le callback apres le delai', async () => {
-  const win = setup();
-  const urls = [];
-  observeUrlChanges(win, (url) => urls.push(url), 10);
+test('popstate declenche sans attendre le prochain tick', async () => {
+  const win = fenetre();
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 100000);
 
-  // simuler une navigation arriere qui change effectivement l URL puis emet popstate
-  win.history.pushState({}, '', '/d');
-  await wait(win, 30);
-  urls.length = 0;
-
-  win.history.pushState({}, '', '/e');
+  win.history.pushState({}, '', '/produit-c');
   win.dispatchEvent(new win.PopStateEvent('popstate'));
-  await wait(win, 30);
-  assert.deepEqual(urls, [win.location.href]);
+
+  assert.deepEqual(vues, ['https://example.test/produit-c']);
+  stop();
 });
 
-test('une navigation vers la meme URL ne declenche pas le callback', async () => {
-  const win = setup();
-  const urls = [];
-  observeUrlChanges(win, (url) => urls.push(url), 10);
+test('une navigation vers la meme URL ne declenche rien', async () => {
+  const win = fenetre();
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 20);
 
-  win.history.pushState({}, '', win.location.href);
-  await wait(win, 30);
-  assert.deepEqual(urls, []);
+  win.history.pushState({}, '', '/depart');
+  await attendre(80);
+
+  assert.deepEqual(vues, []);
+  stop();
 });
 
-test('la fonction stop restaure history et retire l ecouteur popstate', async () => {
-  const win = setup();
-  const urls = [];
-  const originalPush = win.history.pushState;
-  const originalReplace = win.history.replaceState;
+test('chaque navigation successive est signalee une seule fois', async () => {
+  const win = fenetre();
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 20);
 
-  const stop = observeUrlChanges(win, (url) => urls.push(url), 10);
+  win.history.pushState({}, '', '/un');
+  await attendre(60);
+  win.history.pushState({}, '', '/deux');
+  await attendre(60);
 
-  assert.notEqual(win.history.pushState, originalPush, 'pushState doit avoir ete remplace');
-  assert.notEqual(win.history.replaceState, originalReplace, 'replaceState doit avoir ete remplace');
+  assert.deepEqual(vues, ['https://example.test/un', 'https://example.test/deux']);
+  stop();
+});
+
+test('la fonction stop arrete le sondage et retire l ecouteur', async () => {
+  const win = fenetre();
+  const vues = [];
+  const stop = observeUrlChanges(win, (url) => vues.push(url), 20);
 
   stop();
 
-  assert.equal(win.history.pushState, originalPush, 'pushState doit etre restaure');
-  assert.equal(win.history.replaceState, originalReplace, 'replaceState doit etre restaure');
-
-  win.history.pushState({}, '', '/apres-stop');
+  win.history.pushState({}, '', '/apres-arret');
   win.dispatchEvent(new win.PopStateEvent('popstate'));
-  await wait(win, 30);
-  assert.deepEqual(urls, [], 'le callback ne doit plus etre appele apres stop');
+  await attendre(80);
+
+  assert.deepEqual(vues, [], 'plus aucun signalement apres arret');
 });

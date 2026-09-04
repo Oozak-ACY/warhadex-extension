@@ -129,8 +129,10 @@ l'extension demande la permission d'hote correspondante via
    `GET /v1/characters/:id` et renvoie la fiche. En cas de correspondances
    multiples, il renvoie la liste et le panneau affiche un selecteur.
 6. Le content script affiche le lanceur. Le panneau ne s'ouvre qu'au clic.
-7. Sur les SPA, un observateur de `pushState`, `replaceState` et `popstate`
-   relance le cycle a chaque changement d'URL.
+7. Sur les SPA, un sondage periodique de `location.href`, double d'un ecouteur
+   `popstate`, relance le cycle a chaque changement d'URL. Patcher
+   `history.pushState` ne conviendrait pas : le content script vit dans un monde
+   isole et n'intercepterait pas les appels du routeur de la page.
 
 ## 5. Contrat d'API
 

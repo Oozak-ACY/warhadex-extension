@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { MSG, STATUS } from '../src/core/messages.js';
@@ -29,8 +29,19 @@ globalThis.browser = browserStub;
 // `t` is optional: pass it from any test that leaves main.js's bounded
 // MutationObserver armed, so the jsdom window (and its 10 s timer) is torn down
 // with the test instead of keeping the process alive.
+// Le sondage d URL du content script tourne pour la vie de la page. Sans
+// fermeture explicite, les fenetres jsdom gardent la boucle d evenements de Node
+// vivante et le fichier de test ne rend jamais la main
+const fenetresOuvertes = [];
+
+after(() => {
+  for (const fenetre of fenetresOuvertes) fenetre.close();
+  fenetresOuvertes.length = 0;
+});
+
 async function setup({ head = '', body = '', url = 'https://www.example.com/produit', showLauncher = true, sendMessage }, t) {
   const dom = new JSDOM(`<!doctype html><head>${head}</head><body>${body}</body>`, { url });
+  fenetresOuvertes.push(dom.window);
   t?.after(() => dom.window.close());
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
