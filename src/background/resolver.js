@@ -6,9 +6,23 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const NEGATIVE_TTL_MS = DAY_MS;
 // le referentiel d aptitudes ne bouge qu aux mises a jour de regles
 export const ABILITIES_TTL_MS = 30 * DAY_MS;
-// un titre marchand porte souvent la faction ou la gamme devant le nom de l unite,
-// et l API n a pas de recherche approchante : on retente en retirant les mots de tete
+// un titre marchand encadre souvent le nom de l unite par la faction ou la gamme,
+// et l API n a pas de recherche approchante. Les marchands ne s accordent pas sur
+// le cote : warhammer.com et Philibert prefixent, Wayland suffixe. On retente donc
+// en retirant des mots des deux bouts
 export const TRONCATURES_MAX = 3;
+
+export function candidats(name) {
+  const mots = name.split(' ').filter(Boolean);
+  const liste = [name];
+
+  for (let retires = 1; retires <= TRONCATURES_MAX && retires < mots.length; retires += 1) {
+    liste.push(mots.slice(retires).join(' '));
+    liste.push(mots.slice(0, mots.length - retires).join(' '));
+  }
+
+  return [...new Set(liste)];
+}
 export const CERTAIN_SCORE = 0.8;
 
 // Une correspondance est certaine si son score depasse 0.8 et qu elle bat
@@ -80,22 +94,18 @@ export function createResolver({ api, cache, getSettings }) {
   }
 
   // On retient la meilleure tentative et non la premiere qui repond : retirer un
-  // mot de plus fait souvent passer une correspondance approximative a exacte,
-  // par exemple custodes custodian guard qui score 77 la ou custodian guard score 100
+  // mot de plus fait souvent passer une correspondance approximative a exacte.
+  // custodes custodian guard score 77 la ou custodian guard score 100, et
+  // weirdboy orks score 76 la ou weirdboy score 100
   async function chercher(name) {
-    let requete = name;
     let meilleur = { matches: [], requete: name, score: -1 };
 
-    for (let essai = 0; essai <= TRONCATURES_MAX; essai += 1) {
+    for (const requete of candidats(name)) {
       const matches = await api.resolve(requete);
       const score = matches.length ? matches[0].score : -1;
 
       if (score > meilleur.score) meilleur = { matches, requete, score };
       if (score >= 1) break;
-
-      const espace = requete.indexOf(' ');
-      if (espace === -1) break;
-      requete = requete.slice(espace + 1);
     }
 
     return meilleur;

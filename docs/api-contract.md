@@ -29,19 +29,26 @@ L'extension extrait le titre du produit de la page marchande, le normalise
 
 Les scores de l'API sont sur 100 ; le client les ramene sur 1.
 
-**Repli par troncature.** Un titre marchand porte souvent la gamme ou la faction
-devant le nom de l'unite, et l'API n'a pas de recherche approchante : une
-requete comme `adeptus custodes custodian guard` ne renvoie rien. L'extension
-retente donc en retirant les mots de tete, jusqu'a trois fois, et **retient la
-meilleure tentative plutot que la premiere qui repond** :
+**Repli par troncature.** Un titre marchand encadre souvent le nom de l'unite
+par la gamme ou la faction, et l'API n'a pas de recherche approchante. Les
+marchands ne s'accordent pas sur le cote : warhammer.com et Philibert prefixent,
+Wayland suffixe. L'extension retente donc en retirant des mots **des deux
+bouts**, jusqu'a trois de chaque cote, et **retient la meilleure tentative
+plutot que la premiere qui repond** :
 
 ```
 adeptus custodes custodian guard -> aucun resultat
 custodes custodian guard         -> Custodian Guard (77)
 custodian guard                  -> Custodian Guard (100)   <- retenue
+
+weirdboy orks                    -> Weirdboy (76)
+orks                             -> bruit (40)
+weirdboy                         -> Weirdboy (100)          <- retenue
 ```
 
-La recherche s'arrete des qu'un score atteint 100.
+La recherche s'arrete des qu'un score atteint 100, ce qui la ramene le plus
+souvent a deux ou trois appels. Au pire, sur une page sans personnage, elle en
+fait sept, et le resultat vide est mis en cache vingt-quatre heures.
 
 **Regle de certitude.** Une correspondance est affichee directement si son score
 depasse 0.8 et qu'elle bat strictement la suivante. Sinon l'extension propose un

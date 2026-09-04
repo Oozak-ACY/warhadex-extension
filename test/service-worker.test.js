@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { ApiError } from '../src/core/api-client.js';
 import { MSG, STATUS } from '../src/core/messages.js';
 import {
+  candidats,
   createResolver,
   toFailure,
   badgeState,
@@ -415,7 +416,40 @@ test('la troncature est bornee', async () => {
 
   await resolver.chercher('un titre marchand tres long avec beaucoup de mots inutiles');
 
-  assert.equal(api.calls.resolve.length, TRONCATURES_MAX + 1);
+  assert.equal(api.calls.resolve.length, 2 * TRONCATURES_MAX + 1);
+});
+
+// Regression (signalee a l usage) : les marchands ne s accordent pas sur le cote
+// ou ils collent la faction. warhammer.com et Philibert la prefixent, Wayland la
+// suffixe : Weirdboy - Orks devient weirdboy orks, qui ne score que 76, la ou
+// weirdboy seul score 100. Ne tronquer qu a gauche donnait orks, du bruit pur.
+test('la troncature retire des mots des deux bouts', () => {
+  assert.deepEqual(candidats('weirdboy orks'), ['weirdboy orks', 'orks', 'weirdboy']);
+});
+
+test('un nom d un seul mot ne produit qu un candidat', () => {
+  assert.deepEqual(candidats('weirdboy'), ['weirdboy']);
+});
+
+test('les candidats ne comportent pas de doublon', () => {
+  const liste = candidats('alpha beta gamma');
+  assert.equal(new Set(liste).size, liste.length);
+});
+
+test('une faction en suffixe est retiree pour retrouver l unite', async () => {
+  const reponses = {
+    'weirdboy orks': [{ id: 'w', score: 0.76 }],
+    orks: [{ id: 'autre', score: 0.4 }],
+    weirdboy: [{ id: 'w', score: 1 }]
+  };
+  const api = fakeApi();
+  api.resolve = async (name) => reponses[name] ?? [];
+  const resolver = createResolver({ api, cache: fakeCache(), getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  const trouve = await resolver.chercher('weirdboy orks');
+
+  assert.equal(trouve.requete, 'weirdboy');
+  assert.equal(trouve.score, 1);
 });
 
 test('la faction est attachee aux candidats avant l affichage du selecteur', async () => {
