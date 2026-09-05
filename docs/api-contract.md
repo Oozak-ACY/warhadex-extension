@@ -15,7 +15,7 @@ L'extension n'appelle que quatre routes.
 
 | Route | Quand | Pourquoi |
 |---|---|---|
-| `GET /search?q=&type=datasheet&limit=5` | a chaque resolution | seule route qui porte un `score` |
+| `GET /search?q=&type=datasheet&limit=5` | a chaque resolution, et a chaque recherche manuelle | seule route qui porte un `score` |
 | `GET /datasheets?q=&limit=5` | uniquement avant d'afficher un selecteur | seule route qui porte la faction |
 | `GET /datasheets/{id}` | quand une fiche est retenue | l'agregat complet en un appel |
 | `GET /abilities?limit=200` | une fois, puis cache 30 jours | resout les aptitudes servies vides |
@@ -67,6 +67,30 @@ homonymes indistinguables dans le selecteur. Quand un selecteur va s'afficher,
 et seulement dans ce cas, l'extension fait un appel a `/datasheets?q=` et joint
 la faction par `id`. Cet appel est du confort : s'il echoue, le selecteur
 s'affiche sans faction.
+
+## Recherche manuelle
+
+La detection automatique peut se tromper, en particulier sur une boite
+contenant plusieurs types de figurines. Le panneau expose donc une barre de
+recherche : depuis une fiche, un bouton ramene a un accueil qui presente ce que
+la detection avait trouve, plus un champ de saisie libre.
+
+Cette recherche appelle `/search?type=datasheet` **sans troncature** :
+l'utilisateur a saisi ce qu'il voulait, contrairement a un titre marchand
+bruite. Les factions sont attachees par `/datasheets?q=` comme pour le
+selecteur, car deux datasheets peuvent porter le meme nom dans des factions
+differentes.
+
+Trois garde-fous :
+
+- **quatre caracteres minimum** avant d'interroger l'API, une requete d'une
+  lettre renvoyant plus de mille six cents resultats ;
+- **cinq resultats affiches** au maximum, avec une mention quand il y en a plus ;
+- **anti-rebond de 250 ms** et numerotation des requetes, pour qu'une reponse
+  lente lancee avant une rapide n'ecrase pas le resultat le plus recent.
+
+Rien n'est mis en cache : une recherche manuelle est ponctuelle, et un resultat
+perime y serait plus genant qu'un appel de plus.
 
 ## Champs lus dans l'agregat
 

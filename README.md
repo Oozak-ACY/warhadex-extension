@@ -163,7 +163,7 @@ npm test
 Execute `node --test "test/**/*.test.js"` (la forme repertoire, `node --test
 test/`, echoue avec `MODULE_NOT_FOUND` sur Node 24 sous Windows ; utiliser
 le motif glob ci-dessus). A la date de redaction de ce document, la suite
-compte 150 tests, tous passants, couvrant entre autres la detection sur
+compte 170 tests, tous passants, couvrant entre autres la detection sur
 fixtures HTML capturees des quatre sites pris en charge, le client d'API
 (succes, 404, 429, panne reseau), le cache, son expiration et son cache
 negatif, la logique du service worker (regle de certitude, TTL, badge,
@@ -218,7 +218,7 @@ avec ou sans adaptateur dedie.
 **Cette section documente un travail non realise, et non un simple
 complement recommande.** L'environnement dans lequel ce projet a ete
 implemente ne peut pas ouvrir `chrome://extensions` ni aucun navigateur
-reel : toute la validation a ete faite par des tests automatises (150 tests
+reel : toute la validation a ete faite par des tests automatises (170 tests
 `node --test`, y compris des tests d'integration jsdom qui montent le
 panneau, simulent des clics d'onglets, le Shadow DOM et la navigation SPA).
 Personne n'a donc encore confirme que le service worker s'enregistre

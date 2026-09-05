@@ -66,6 +66,12 @@ async function envoyer(message) {
   }
 }
 
+async function chercherParNom(requete) {
+  const reponse = await envoyer({ type: MSG.SEARCH, q: requete });
+  if (!reponse) throw new Error('recherche indisponible');
+  return reponse.matches ?? [];
+}
+
 async function ouvrirFiche(id) {
   const reponse = await envoyer({ type: MSG.CHARACTER, id });
   if (reponse?.status === STATUS.MATCH) panel.showCharacter(reponse.character);
@@ -73,9 +79,17 @@ async function ouvrirFiche(id) {
 }
 
 function appliquer(reponse) {
-  if (reponse.status === STATUS.MATCH) panel.showCharacter(reponse.character);
-  else if (reponse.status === STATUS.AMBIGUOUS) panel.showMatches(reponse.matches);
-  else panel.showState(reponse.status);
+  if (reponse.status === STATUS.MATCH) {
+    // l accueil garde la trace de ce qui a ete detecte, pour que le retour ait
+    // un sens meme quand la resolution etait certaine
+    const fiche = reponse.character;
+    panel.setHome([{ id: fiche.id, name: fiche.name, faction: fiche.faction }]);
+    panel.showCharacter(fiche);
+  } else if (reponse.status === STATUS.AMBIGUOUS) {
+    panel.showMatches(reponse.matches);
+  } else {
+    panel.showState(reponse.status);
+  }
 }
 
 async function analyser({ reessayer = true } = {}) {
@@ -129,7 +143,10 @@ async function analyser({ reessayer = true } = {}) {
   if (reponse.status === STATUS.NOT_FOUND) {
     // une page produit sans personnage reconnu merite de le dire, contrairement
     // a une page sans produit du tout ou l extension reste muette
-    panel.showState(STATUS.NOT_FOUND);
+    // une page produit non reconnue est justement le cas ou la recherche
+    // manuelle sert : on ouvre l accueil plutot qu un message seul
+    panel.setHome([]);
+    panel.showHome(STATUS.NOT_FOUND);
     launcher.show();
     return;
   }
@@ -146,7 +163,7 @@ export async function start() {
   const { showLauncher } = await getSettings();
   if (!showLauncher) return;
 
-  panel = await createPanel({ doc: document, onSelect: ouvrirFiche });
+  panel = await createPanel({ doc: document, onSelect: ouvrirFiche, onSearch: chercherParNom });
   launcher = createLauncher({ doc: document, onClick: () => panel.open() });
 
   await analyser();

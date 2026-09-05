@@ -12,6 +12,7 @@ import {
   NEGATIVE_TTL_MS,
   ABILITIES_TTL_MS,
   TRONCATURES_MAX,
+  MIN_RECHERCHE,
   DAY_MS
 } from '../src/background/resolver.js';
 import { createBadge } from '../src/background/badge.js';
@@ -491,4 +492,74 @@ test('une correspondance certaine n appelle pas l enrichissement', async () => {
   await resolver.resolveName('marneus calgar');
 
   assert.equal(appele, false, 'pas d appel de confort quand le selecteur ne s affichera pas');
+});
+
+
+// --- recherche manuelle par nom ---
+
+test('la recherche manuelle attache les factions et ne tronque pas', async () => {
+  const api = fakeApi({ matches: [{ id: 'a', score: 0.8 }, { id: 'b', score: 0.6 }] });
+  api.describe = async () => [
+    { id: 'a', faction: 'Space Marines' },
+    { id: 'b', faction: 'Grey Knights' }
+  ];
+  const resolver = createResolver({ api, cache: fakeCache(), getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  const result = await resolver.rechercher('terminator squad');
+
+  assert.equal(result.status, STATUS.AMBIGUOUS);
+  assert.deepEqual(result.matches.map((m) => m.faction), ['Space Marines', 'Grey Knights']);
+  assert.deepEqual(
+    api.calls.resolve.map((c) => c.name),
+    ['terminator squad'],
+    'une seule requete : l utilisateur a tape ce qu il voulait'
+  );
+});
+
+test('une recherche trop courte n interroge pas l api', async () => {
+  const api = fakeApi({ matches: [{ id: 'a', score: 1 }] });
+  const resolver = createResolver({ api, cache: fakeCache(), getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  const result = await resolver.rechercher('cal');
+
+  assert.equal(result.status, STATUS.NOT_FOUND);
+  assert.deepEqual(result.matches, []);
+  assert.deepEqual(api.calls.resolve, []);
+  assert.equal(MIN_RECHERCHE, 4);
+});
+
+test('une recherche sans resultat repond not-found', async () => {
+  const api = fakeApi({ matches: [] });
+  const resolver = createResolver({ api, cache: fakeCache(), getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  const result = await resolver.rechercher('inexistant');
+
+  assert.equal(result.status, STATUS.NOT_FOUND);
+  assert.deepEqual(result.matches, []);
+});
+
+test('la recherche manuelle ne pollue pas le cache de resolution', async () => {
+  const api = fakeApi({ matches: [{ id: 'a', score: 1 }] });
+  api.describe = async () => [];
+  const cache = fakeCache();
+  const resolver = createResolver({ api, cache, getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  await resolver.rechercher('marneus calgar');
+
+  assert.deepEqual(cache.writes, [], 'rien de memorise pour une recherche manuelle');
+});
+
+test('le message SEARCH est route vers la recherche manuelle', async () => {
+  const api = fakeApi({ matches: [{ id: 'a', score: 1 }] });
+  api.describe = async () => [{ id: 'a', faction: 'Orks' }];
+  const resolver = createResolver({ api, cache: fakeCache(), getSettings: async () => ({ cacheTtlDays: 7 }) });
+
+  const result = await resolver.handle({ type: MSG.SEARCH, q: 'weirdboy' });
+
+  assert.equal(result.status, STATUS.AMBIGUOUS);
+  assert.equal(result.matches[0].faction, 'Orks');
+});
+
+test('la recherche manuelle ne touche pas au badge', () => {
+  assert.equal(BADGE_MESSAGES.has(MSG.SEARCH), false);
 });

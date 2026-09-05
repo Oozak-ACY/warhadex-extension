@@ -1,6 +1,7 @@
 export const MSG = {
   RESOLVE: 'warhadex:resolve',
   CHARACTER: 'warhadex:character',
+  SEARCH: 'warhadex:search',
   CLEAR_CACHE: 'warhadex:clear-cache',
   CLEAR_BADGE: 'warhadex:clear-badge'
 };

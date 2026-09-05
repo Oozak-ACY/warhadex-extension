@@ -12,6 +12,9 @@ export const ABILITIES_TTL_MS = 30 * DAY_MS;
 // en retirant des mots des deux bouts
 export const TRONCATURES_MAX = 3;
 
+// en deca la recherche manuelle ramene des centaines de resultats sans interet
+export const MIN_RECHERCHE = 4;
+
 export function candidats(name) {
   const mots = name.split(' ').filter(Boolean);
   const liste = [name];
@@ -146,6 +149,20 @@ export function createResolver({ api, cache, getSettings }) {
     return { status: STATUS.AMBIGUOUS, matches };
   }
 
+  // Recherche manuelle : l utilisateur a tape ce qu il veut, donc ni troncature
+  // ni cache. Les factions sont attachees car deux datasheets peuvent porter le
+  // meme nom dans des factions differentes
+  async function rechercher(requete) {
+    const q = (requete ?? '').trim();
+    if (q.length < MIN_RECHERCHE) return { status: STATUS.NOT_FOUND, matches: [] };
+
+    let matches = await api.resolve(q);
+    if (!matches.length) return { status: STATUS.NOT_FOUND, matches: [] };
+
+    matches = await enrichir(matches, q);
+    return { status: STATUS.AMBIGUOUS, matches };
+  }
+
   async function handle(message) {
     if (message.type === MSG.RESOLVE) return resolveName(message.name);
     // le content script quitte une page produit : Chrome ne reinitialise le badge
@@ -154,6 +171,7 @@ export function createResolver({ api, cache, getSettings }) {
     if (message.type === MSG.CHARACTER) {
       return { status: STATUS.MATCH, character: await loadCharacter(message.id) };
     }
+    if (message.type === MSG.SEARCH) return rechercher(message.q);
     if (message.type === MSG.CLEAR_CACHE) {
       await cache.clear();
       return { status: STATUS.MATCH };
@@ -161,5 +179,5 @@ export function createResolver({ api, cache, getSettings }) {
     return { status: STATUS.ERROR };
   }
 
-  return { handle, resolveName, loadCharacter, abilityIndex, chercher };
+  return { handle, resolveName, loadCharacter, abilityIndex, chercher, rechercher };
 }
