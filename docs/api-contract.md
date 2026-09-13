@@ -4,10 +4,15 @@ Ce document decrit les routes et les champs que l'extension utilise reellement.
 Il ne specifie plus une API a implementer : il documente l'integration avec
 l'API existante, telle qu'elle a ete verifiee en direct.
 
-L'adresse de base est preremplie sur `http://localhost:8000`, sans suffixe de
-version, et l'acces local est accorde des l'installation : dans le cas courant
-il n'y a rien a saisir. Le champ des options reste modifiable pour pointer une
-API distante.
+L'adresse de base est preremplie sur `https://warhadex-api.orion-sphere.fr`,
+sans suffixe de version, et ce domaine est accorde des l'installation : dans le
+cas courant il n'y a rien a saisir. Le champ des options reste modifiable, et
+`http://localhost:8000` reste autorise pour le developpement.
+
+Si un reglage enregistre sous une version precedente porte encore
+`http://localhost:8000`, il est ignore au profit de la production : la page
+d'options enregistrait l'objet complet, defaut compris, et ce n'etait donc pas
+un choix de l'utilisateur.
 
 ## Routes utilisees
 
@@ -172,9 +177,33 @@ l'utilisateur, le cas est rare, et l'en-tete `Retry-After` n'est pas affiche.
 
 ## Authentification
 
-Facultative. Si une cle est renseignee dans les options, elle est envoyee en
-`Authorization: Bearer <cle>`. Elle est stockee dans `storage.local`, jamais
-synchronisee, et n'est jamais transmise a un content script ni a une page.
+Obligatoire en production. Sans cle, ou avec une cle refusee, l'API repond
+`401` et l'extension affiche « Verifiez l'adresse et la cle d'API dans les
+options », plutot qu'une erreur generique : c'est un probleme de configuration
+que l'utilisateur peut corriger.
+
+La cle est envoyee dans l'en-tete `X-API-Key`. Elle provient, par ordre de
+priorite :
+
+1. du champ des options, s'il est rempli, stocke dans `storage.local` et jamais
+   synchronise ;
+2. sinon de la cle integree au build, lue dans la variable d'environnement
+   `WARHADEX_API_KEY` ou dans le fichier `cle-api.local` a la racine du depot.
+
+Ce fichier est ignore par git et la cle n'est ecrite que dans `dist/`. Le
+fichier versionne `src/core/config.js` garde une valeur vide.
+
+**Une cle integree a une extension n'est pas secrete.** Une extension est une
+archive que n'importe qui peut decompresser : la cle y est lisible par toute
+personne qui possede le build. Elle identifie un client, permet de le limiter en
+debit et de le revoquer, mais ne protege pas les donnees contre quelqu'un de
+determine. Si l'extension est distribuee, prevoir une cle dediee a ce client,
+revocable independamment des autres.
+
+L'API ne repond pas aux preflight CORS (`OPTIONS` renvoie `405`). Ce n'est pas
+un probleme pour un service worker d'extension, qui contourne CORS sur un hote
+accorde a l'installation. C'est pourquoi le domaine de production est dans
+`host_permissions` et non en permission facultative.
 
 ## Mise en cache
 

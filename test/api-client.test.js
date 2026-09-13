@@ -118,7 +118,7 @@ test('lever rate-limited sur 429', async () => {
   );
 });
 
-test('envoyer la cle d api en Bearer quand elle est reglee', async () => {
+test('envoyer la cle d api dans l en-tete X-API-Key quand elle est reglee', async () => {
   let seen;
   const client = createApiClient({
     getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: 'secret' }),
@@ -129,7 +129,8 @@ test('envoyer la cle d api en Bearer quand elle est reglee', async () => {
   });
 
   await client.resolve('calgar');
-  assert.equal(seen.Authorization, 'Bearer secret');
+  assert.equal(seen['X-API-Key'], 'secret');
+  assert.equal(seen.Authorization, undefined, 'l API de prod ne lit pas Authorization');
 });
 
 test('abilities ramene le referentiel complet', async () => {
@@ -150,4 +151,33 @@ test('resolve rend un tableau vide quand items est absent', async () => {
   });
 
   assert.deepEqual(await client.resolve('rien'), []);
+});
+
+test('une cle refusee est un probleme de configuration, pas une panne', async () => {
+  for (const status of [401, 403]) {
+    const client = createApiClient({
+      getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: 'revoquee' }),
+      fetchImpl: async () => new Response('{}', { status })
+    });
+
+    await assert.rejects(
+      () => client.resolve('calgar'),
+      (error) => error instanceof ApiError && error.status === 'not-configured',
+      `un ${status} doit orienter vers les options`
+    );
+  }
+});
+
+test('aucun en-tete de cle n est envoye quand la cle est vide', async () => {
+  let seen;
+  const client = createApiClient({
+    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    fetchImpl: async (url, init) => {
+      seen = init.headers;
+      return new Response(JSON.stringify({ items: [] }), { status: 200 });
+    }
+  });
+
+  await client.resolve('calgar');
+  assert.equal('X-API-Key' in seen, false);
 });

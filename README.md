@@ -96,33 +96,41 @@ activer l'extension dans Safari via Reglages, Extensions, apres avoir coche
 
 ## Configuration
 
-L'extension ne fonctionne pas tant qu'elle n'a pas d'API a interroger.
+L'extension interroge par defaut l'API de production
+`https://warhadex-api.orion-sphere.fr`, accordee des l'installation : il n'y a
+pas d'adresse a saisir.
 
-1. Ouvrir la page d'options de l'extension (via l'icone de la barre
-   d'outils, ou `chrome://extensions` / `about:addons` selon le navigateur).
-2. Renseigner l'adresse de base de votre API dans "Adresse de votre API".
-3. Au moment d'enregistrer, le navigateur demande la permission d'acceder a
-   ce domaine (`permissions.request`, declenchee par le clic sur
-   "Enregistrer") : l'accorder est necessaire, sinon Warhadex ne pourra pas
-   joindre l'API et affichera l'etat "API non configuree" sur les pages
-   produit.
-   Les origines demandables sont declarees dans
-   `optional_host_permissions` : tout `https://`, plus `http://localhost` et
-   `http://127.0.0.1` pour le serveur mock de developpement. Une adresse en
-   `http://` sur un autre hote est refusee par le navigateur, et la page
-   d'options l'indique explicitement. Le port n'entre jamais dans le motif de
-   permission demande : une permission d'hote couvre tous les ports de cet
-   hote.
-4. Une cle d'API est facultative ; si renseignee, elle est envoyee en
-   en-tete `Authorization: Bearer <cle>` par le service worker uniquement.
-5. La duree du cache (en jours) et l'activation du lanceur sur les pages
-   produit sont egalement reglables depuis cette page.
+L'API exige une cle, envoyee dans l'en-tete `X-API-Key`. Deux facons de la
+fournir, la premiere l'emportant sur la seconde :
 
-L'adresse de base est preremplie sur `http://localhost:8000` et l'acces local
-est accorde des l'installation : dans le cas courant il n'y a rien a saisir ni a
-autoriser. Le champ reste modifiable pour pointer une API distante, auquel cas
-le navigateur demande l'autorisation pour ce domaine. Les routes appelees et les
-champs lus sont documentes dans `docs/api-contract.md`.
+1. **Dans les options de l'extension**, champ « Cle d'API ». Elle est stockee
+   dans `storage.local` et jamais synchronisee.
+2. **Au build**, pour que l'extension fonctionne sans configuration :
+
+   ```bash
+   WARHADEX_API_KEY=votre-cle npm run build
+   ```
+
+   ou en placant la cle seule dans un fichier `cle-api.local` a la racine du
+   depot. Ce fichier est ignore par git, et la cle n'est ecrite que dans
+   `dist/` : `src/core/config.js` reste vide dans le depot.
+
+Sans cle, ou avec une cle refusee, le panneau affiche « Verifiez l'adresse et la
+cle d'API dans les options ».
+
+**Une cle integree au build n'est pas secrete.** Une extension est une archive
+que n'importe qui peut decompresser, la cle y est donc lisible par quiconque
+possede le build. Elle permet d'identifier, limiter et revoquer un client, pas
+de proteger les donnees. Si l'extension est distribuee, lui attribuer une cle
+dediee, revocable sans toucher aux autres.
+
+Les options restent utiles pour pointer une autre API. `http://localhost:8000`
+reste autorise pour le developpement ; une autre adresse `https://` declenche
+une demande de permission a l'enregistrement. Un reglage enregistre sous une
+version precedente qui porte encore `http://localhost:8000` est ignore au profit
+de la production. La duree du cache et l'activation du lanceur se reglent au
+meme endroit. Les routes appelees et les champs lus sont documentes dans
+`docs/api-contract.md`.
 
 ## Serveur mock
 
@@ -163,7 +171,7 @@ npm test
 Execute `node --test "test/**/*.test.js"` (la forme repertoire, `node --test
 test/`, echoue avec `MODULE_NOT_FOUND` sur Node 24 sous Windows ; utiliser
 le motif glob ci-dessus). A la date de redaction de ce document, la suite
-compte 170 tests, tous passants, couvrant entre autres la detection sur
+compte 179 tests, tous passants, couvrant entre autres la detection sur
 fixtures HTML capturees des quatre sites pris en charge, le client d'API
 (succes, 404, 429, panne reseau), le cache, son expiration et son cache
 negatif, la logique du service worker (regle de certitude, TTL, badge,
@@ -218,7 +226,7 @@ avec ou sans adaptateur dedie.
 **Cette section documente un travail non realise, et non un simple
 complement recommande.** L'environnement dans lequel ce projet a ete
 implemente ne peut pas ouvrir `chrome://extensions` ni aucun navigateur
-reel : toute la validation a ete faite par des tests automatises (170 tests
+reel : toute la validation a ete faite par des tests automatises (179 tests
 `node --test`, y compris des tests d'integration jsdom qui montent le
 panneau, simulent des clics d'onglets, le Shadow DOM et la navigation SPA).
 Personne n'a donc encore confirme que le service worker s'enregistre
@@ -325,14 +333,16 @@ votre API plutot que les versionner.
 
 ## Confidentialite
 
-La cle d'API renseignee dans les reglages n'est jamais transmise a un script
-de contenu ni a une page web : le script de contenu n'emet aucune requete
-vers un hote distant, et seul le nom de produit normalise ainsi que le
-domaine d'origine sont envoyes a l'API que vous avez vous-meme configuree.
+La cle d'API n'est jamais transmise a un script de contenu ni a une page web :
+seul le service worker l'emploie, dans l'en-tete `X-API-Key`. Le script de
+contenu n'emet aucune requete vers un hote distant, et seul le nom de produit
+normalise ainsi que le domaine d'origine sont envoyes a l'API.
 
-Elle est egalement conservee localement : la cle est stockee dans
-`storage.local`, jamais dans `storage.sync`, ce qui evite de la televerser
-vers le service de synchronisation de votre navigateur. Les autres
+Une cle saisie dans les options est conservee localement : elle est stockee dans
+`storage.local`, jamais dans `storage.sync`, ce qui evite de la televerser vers
+le service de synchronisation de votre navigateur. Une cle integree au build, en
+revanche, fait partie de l'archive de l'extension et reste lisible par quiconque
+la decompresse : voir [Configuration](#configuration). Les autres
 reglages (adresse de l'API, duree du cache, affichage du lanceur) sont eux
 dans `storage.sync` et suivent donc votre profil. Le bouton "Vider le cache"
 ne supprime que les entrees de cache prefixees, jamais vos reglages.

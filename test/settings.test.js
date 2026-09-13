@@ -22,7 +22,8 @@ const sync = aire();
 const local = aire();
 globalThis.browser = { storage: { sync, local } };
 
-const { getSettings, setSettings, DEFAULTS, SYNC_KEYS, LOCAL_KEYS } = await import('../src/core/settings.js');
+const { getSettings, setSettings, nettoyer, DEFAULTS, SYNC_KEYS, LOCAL_KEYS, DEFAUT_API, ANCIEN_DEFAUT_API } =
+  await import('../src/core/settings.js');
 
 test('la cle d API est la seule valeur stockee hors de storage.sync', () => {
   assert.deepEqual(LOCAL_KEYS, ['apiKey']);
@@ -78,4 +79,48 @@ test('setSettings partiel conserve les valeurs deja stockees dans l autre aire',
 
   assert.equal(local.data.get('apiKey'), 'secret', 'la cle d API doit survivre a une mise a jour partielle');
   assert.equal(sync.data.get('cacheTtlDays'), 14);
+});
+
+// --- API de production et migration des reglages enregistres ---
+
+test('l adresse par defaut est l API de production', () => {
+  assert.equal(DEFAUT_API, 'https://warhadex-api.orion-sphere.fr');
+  assert.equal(DEFAULTS.apiBaseUrl, DEFAUT_API);
+});
+
+// Regression : la page d options enregistre l objet complet, defaut compris. Une
+// installation qui avait clique Enregistrer du temps de localhost garde donc
+// http://localhost:8000 dans storage.sync, et resterait bloquee dessus apres mise a jour
+test('l ancien defaut localhost enregistre n ecrase pas la nouvelle adresse', async () => {
+  sync.data.clear();
+  local.data.clear();
+  sync.data.set('apiBaseUrl', ANCIEN_DEFAUT_API);
+
+  assert.equal((await getSettings()).apiBaseUrl, DEFAUT_API);
+});
+
+test('une adresse personnalisee reste prioritaire sur le defaut', async () => {
+  sync.data.clear();
+  local.data.clear();
+  sync.data.set('apiBaseUrl', 'https://mon-api.exemple.fr');
+
+  assert.equal((await getSettings()).apiBaseUrl, 'https://mon-api.exemple.fr');
+});
+
+// Teste la regle elle-meme plutot qu a travers getSettings : dans src la cle
+// integree est vide, donc une cle vide stockee et le defaut seraient indistinguables
+test('une cle vide ou l ancien defaut ne sont pas des choix de l utilisateur', () => {
+  const { propreSync, propreLocal } = nettoyer(
+    { apiBaseUrl: ANCIEN_DEFAUT_API, cacheTtlDays: 3 },
+    { apiKey: '' }
+  );
+
+  assert.equal('apiBaseUrl' in propreSync, false, 'l ancien defaut doit ceder la place');
+  assert.equal(propreSync.cacheTtlDays, 3, 'les autres reglages sont conserves');
+  assert.equal('apiKey' in propreLocal, false, 'une cle vide doit laisser place a la cle integree');
+});
+
+test('une cle saisie par l utilisateur est conservee', () => {
+  const { propreLocal } = nettoyer({}, { apiKey: 'la-mienne' });
+  assert.equal(propreLocal.apiKey, 'la-mienne');
 });

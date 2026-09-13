@@ -8,6 +8,11 @@ export class ApiError extends Error {
 }
 
 function mapHttpError(response) {
+  // cle absente, invalide ou revoquee : c est un probleme de configuration, que
+  // l utilisateur peut corriger, et non une panne
+  if (response.status === 401 || response.status === 403) {
+    return new ApiError('not-configured', 'cle d api refusee');
+  }
   if (response.status === 404) return new ApiError('not-found', 'fiche inconnue');
   if (response.status === 429) {
     const retryAfter = Number(response.headers.get('retry-after')) || undefined;
@@ -32,7 +37,7 @@ export function createApiClient({ getSettings, fetchImpl = fetch }) {
     }
 
     const headers = { Accept: 'application/json' };
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    if (apiKey) headers['X-API-Key'] = apiKey;
 
     let response;
     try {

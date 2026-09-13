@@ -1,5 +1,6 @@
 import browser from '../vendor/browser.js';
 import { getSettings, setSettings } from '../core/settings.js';
+import { CLE_API_PAR_DEFAUT } from '../core/config.js';
 import { MSG } from '../core/messages.js';
 
 const form = document.querySelector('#reglages');
@@ -20,7 +21,9 @@ function motifOrigine(valeur) {
 async function charger() {
   const reglages = await getSettings();
   form.apiBaseUrl.value = reglages.apiBaseUrl;
-  form.apiKey.value = reglages.apiKey;
+  // la cle integree n est pas affichee : l enregistrer depuis le champ la
+  // recopierait dans storage.local comme si l utilisateur l avait choisie
+  form.apiKey.value = reglages.apiKey === CLE_API_PAR_DEFAUT ? '' : reglages.apiKey;
   form.cacheTtlDays.value = reglages.cacheTtlDays;
   form.showLauncher.checked = reglages.showLauncher;
 }

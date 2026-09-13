@@ -311,7 +311,8 @@ test('un statut not-configured laisse le lanceur ouvrable et efface le garde-fou
 
   assert.equal(calls.length, 1);
   assert.equal(findLauncherButton().hidden, false, 'le message de configuration doit etre atteignable');
-  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /adresse de votre API/);
+  // l API de production exige une cle : le message doit orienter vers elle, pas seulement vers l adresse
+  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /cle d API dans les options/);
 
   doc.defaultView.history.pushState({}, '', '/autre-chemin');
   await wait(550);
