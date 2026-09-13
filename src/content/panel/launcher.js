@@ -1,3 +1,5 @@
+// memes valeurs que la palette heraldique de panel.css : le lanceur vit dans son
+// propre Shadow DOM et ne voit pas ses variables
 const STYLE = `
 :host { all: initial; }
 .wx-launcher {
@@ -5,15 +7,18 @@ const STYLE = `
   right: 16px;
   bottom: 16px;
   z-index: 2147483646;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 999px;
-  color: #e2e8f0;
+  background: #9b1c1c;
+  border: 2px solid #f7f2e8;
+  border-radius: 3px;
+  color: #f7f2e8;
   cursor: pointer;
-  font: 13px/1 system-ui, -apple-system, Segoe UI, sans-serif;
-  padding: 10px 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font: 600 13px/1 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
+  letter-spacing: 0.5px;
+  padding: 10px 16px;
+  box-shadow: 0 4px 12px rgba(42, 26, 20, 0.35);
 }
+.wx-launcher:hover { background: #7f1616; }
+.wx-launcher:focus-visible { outline: 2px solid #2a1a14; outline-offset: 2px; }
 .wx-launcher[hidden] { display: none; }
 `;
 

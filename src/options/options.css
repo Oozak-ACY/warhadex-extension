@@ -1,7 +1,23 @@
+/* meme palette heraldique que le panneau, verifiee par test/palette.test.js */
+:root {
+  --wx-parchemin: #f7f2e8;
+  --wx-parchemin-2: #efe6d6;
+  --wx-champ: #fffcf6;
+  --wx-encre: #2a1a14;
+  --wx-encre-2: #6f5b4a;
+  --wx-gueules: #9b1c1c;
+  --wx-gueules-fonce: #7f1616;
+  --wx-filet: #d9c9ad;
+  --wx-erreur: #8a1616;
+  --wx-titre: 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
+  --wx-texte: 'EB Garamond', Garamond, Georgia, 'Times New Roman', serif;
+}
+
 body {
-  background: #0f172a;
-  color: #e2e8f0;
-  font: 15px/1.6 system-ui, -apple-system, Segoe UI, sans-serif;
+  background: var(--wx-parchemin);
+  border-top: 4px solid var(--wx-gueules);
+  color: var(--wx-encre);
+  font: 16px/1.6 var(--wx-texte);
   margin: 0;
   padding: 32px 16px;
 }
@@ -12,7 +28,12 @@ main {
 }
 
 h1 {
-  font-size: 20px;
+  border-bottom: 1px solid var(--wx-filet);
+  color: var(--wx-gueules);
+  font: 500 26px/1.3 var(--wx-titre);
+  letter-spacing: 1px;
+  margin: 0 0 8px;
+  padding-bottom: 8px;
 }
 
 label {
@@ -28,12 +49,10 @@ label.case {
   gap: 8px;
 }
 
-input[type='url'],
-input[type='password'],
 input[type='number'] {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 4px;
+  background: var(--wx-champ);
+  border: 1px solid var(--wx-filet);
+  border-radius: 3px;
   box-sizing: border-box;
   color: inherit;
   font: inherit;
@@ -41,9 +60,19 @@ input[type='number'] {
   width: 100%;
 }
 
+input[type='checkbox'] {
+  accent-color: var(--wx-gueules);
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--wx-gueules);
+  outline-offset: 2px;
+}
+
 .aide {
-  color: #94a3b8;
-  font-size: 13px;
+  color: var(--wx-encre-2);
+  font-size: 14px;
   margin: 4px 0 0;
 }
 
@@ -54,20 +83,27 @@ input[type='number'] {
 }
 
 button {
-  background: #38bdf8;
-  border: 0;
-  border-radius: 4px;
-  color: #0f172a;
+  background: var(--wx-gueules);
+  border: 1px solid var(--wx-gueules);
+  border-radius: 3px;
+  color: var(--wx-parchemin);
   cursor: pointer;
-  font: inherit;
-  font-weight: 600;
+  font: 14px/1.4 var(--wx-titre);
+  letter-spacing: 0.5px;
   padding: 8px 16px;
+}
+
+button:hover {
+  background: var(--wx-gueules-fonce);
 }
 
 #vider {
   background: transparent;
-  border: 1px solid #334155;
-  color: #e2e8f0;
+  color: var(--wx-gueules);
+}
+
+#vider:hover {
+  background: var(--wx-parchemin-2);
 }
 
 #etat {
@@ -76,5 +112,5 @@ button {
 }
 
 #etat[data-erreur='true'] {
-  color: #fca5a5;
+  color: var(--wx-erreur);
 }
