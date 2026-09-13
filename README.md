@@ -95,35 +95,31 @@ activer l'extension dans Safari via Reglages, Extensions, apres avoir coche
 
 ## Configuration
 
-L'extension interroge exclusivement l'API `https://warhadex-api.orion-sphere.fr`.
-Son adresse est fixee dans le code : ce n'est pas un reglage, et aucune autre API
-n'est joignable, ni par une permission accordee ni par une permission demandable.
+L'extension interroge exclusivement l'API `https://warhadex-api.orion-sphere.fr`,
+avec une cle integree au build. Ni l'adresse ni la cle ne sont des reglages : il
+n'y a rien a configurer apres l'installation.
 
-L'API exige une cle, envoyee dans l'en-tete `X-API-Key`. Deux facons de la
-fournir, la premiere l'emportant sur la seconde :
+La cle est envoyee dans l'en-tete `X-API-Key`. Elle doit etre fournie au moment
+du build :
 
-1. **Dans les options de l'extension**, champ « Cle d'API ». Elle est stockee
-   dans `storage.local` et jamais synchronisee.
-2. **Au build**, pour que l'extension fonctionne sans configuration :
+```bash
+WARHADEX_API_KEY=votre-cle npm run build
+```
 
-   ```bash
-   WARHADEX_API_KEY=votre-cle npm run build
-   ```
+ou en placant la cle seule dans un fichier `cle-api.local` a la racine du depot,
+puis `npm run build`. Ce fichier est ignore par git, et la cle n'est ecrite que
+dans `dist/` : `src/core/config.js` reste vide dans le depot. **Sans cle, le
+build echoue** : une extension sans cle serait installable mais incapable de
+joindre l'API, sans aucun moyen de lui en fournir une.
 
-   ou en placant la cle seule dans un fichier `cle-api.local` a la racine du
-   depot. Ce fichier est ignore par git, et la cle n'est ecrite que dans
-   `dist/` : `src/core/config.js` reste vide dans le depot.
+Changer de cle impose donc un nouveau build et une nouvelle diffusion de
+l'extension. Si l'API refuse la cle, le panneau affiche « Acces a l'API Warhadex
+refuse ».
 
-Sans cle, ou avec une cle refusee, le panneau affiche « Verifiez la cle d'API
-dans les options ».
+La cle etant dans l'archive de l'extension, elle est lisible par quiconque possede
+le build : elle ne protege pas l'API, elle identifie le client.
 
-**Une cle integree au build n'est pas secrete.** Une extension est une archive
-que n'importe qui peut decompresser, la cle y est donc lisible par quiconque
-possede le build. Elle permet d'identifier, limiter et revoquer un client, pas
-de proteger les donnees. Si l'extension est distribuee, lui attribuer une cle
-dediee, revocable sans toucher aux autres.
-
-La duree du cache et l'activation du lanceur se reglent dans les options. Les
+La page d'options ne regle que la duree du cache et l'activation du lanceur. Les
 routes appelees et les champs lus sont documentes dans `docs/api-contract.md`.
 
 ## Serveur mock
@@ -230,9 +226,9 @@ sur une vraie page produit. La checklist ci-dessous doit etre executee et
 cochee par une personne disposant d'un navigateur avant de considerer
 l'extension pret pour un usage reel.
 
-Prerequis pour cette verification : une cle d'API valide, fournie au build
-ou dans les options (voir [Configuration](#configuration)). L'extension
-interroge l'API de production, son adresse n'etant pas reglable.
+Prerequis pour cette verification : un build fait avec une cle d'API valide
+(voir [Configuration](#configuration)). L'extension interroge l'API de
+production, ni son adresse ni sa cle n'etant reglables.
 
 ### Chrome
 
@@ -269,11 +265,10 @@ interroge l'API de production, son adresse n'etant pas reglable.
       par observation du DOM, abandonnee au bout de dix secondes).
 - [ ] Reseau coupe : le lanceur reste visible et son clic ouvre le panneau
       sur le message "Votre API est injoignable".
-- [ ] Sans cle ou avec une cle invalide : le panneau affiche "Verifiez la cle
-      d API dans les options".
-- [ ] La page d'options s'ouvre, ne propose aucun champ d'adresse, et
-      enregistre la cle, la duree du cache et l'activation du lanceur sans
-      demande de permission.
+- [ ] Avec un build dont la cle est revoquee : le panneau affiche "Acces a
+      l API Warhadex refuse".
+- [ ] La page d'options s'ouvre, ne propose ni adresse ni cle, et enregistre
+      la duree du cache et l'activation du lanceur sans demande de permission.
 - [ ] Le bouton "Vider le cache" fonctionne (verifiable en observant que la
       resolution suivante repasse par l'API, dans l'onglet Reseau de la console
       du service worker).
@@ -331,13 +326,9 @@ votre API plutot que les versionner.
 La cle d'API n'est jamais transmise a un script de contenu ni a une page web :
 seul le service worker l'emploie, dans l'en-tete `X-API-Key`. Le script de
 contenu n'emet aucune requete vers un hote distant, et seul le nom de produit
-normalise ainsi que le domaine d'origine sont envoyes a l'API.
+normalise ainsi que le domaine d'origine sont envoyes a l'API. La cle fait
+partie de l'archive de l'extension et reste lisible par quiconque la decompresse.
 
-Une cle saisie dans les options est conservee localement : elle est stockee dans
-`storage.local`, jamais dans `storage.sync`, ce qui evite de la televerser vers
-le service de synchronisation de votre navigateur. Une cle integree au build, en
-revanche, fait partie de l'archive de l'extension et reste lisible par quiconque
-la decompresse : voir [Configuration](#configuration). Les autres
-reglages (duree du cache, affichage du lanceur) sont eux
-dans `storage.sync` et suivent donc votre profil. Le bouton "Vider le cache"
+Les reglages (duree du cache, affichage du lanceur) sont dans `storage.sync` et
+suivent donc votre profil. Le bouton "Vider le cache"
 ne supprime que les entrees de cache prefixees, jamais vos reglages.

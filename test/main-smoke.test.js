@@ -311,8 +311,8 @@ test('un statut not-configured laisse le lanceur ouvrable et efface le garde-fou
 
   assert.equal(calls.length, 1);
   assert.equal(findLauncherButton().hidden, false, 'le message de configuration doit etre atteignable');
-  // l API de production exige une cle : le message doit orienter vers elle, pas seulement vers l adresse
-  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /cle d API dans les options/);
+  // la cle est integree : l utilisateur n a rien a regler, le message dit seulement que l acces est refuse
+  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /Acces a l API Warhadex refuse/);
 
   doc.defaultView.history.pushState({}, '', '/autre-chemin');
   await wait(550);

@@ -110,11 +110,12 @@ courant.
 
 ### 4.4 options - configuration
 
-Page d'options permettant de saisir une cle d'API et les reglages d'affichage.
-L'adresse de l'API n'est pas un reglage : l'extension ne parle qu'a
+Page d'options reglant uniquement la duree du cache et l'activation du lanceur.
+Ni l'adresse de l'API ni sa cle ne sont des reglages : l'extension ne parle qu'a
 `https://warhadex-api.orion-sphere.fr`, fixee dans le code et accordee en
-`host_permissions` des l'installation. Aucune permission d'hote facultative
-n'est declaree, et la page d'options ne sollicite plus l'API de permissions.
+`host_permissions` des l'installation, avec une cle integree au build. Aucune
+permission d'hote facultative n'est declaree, et la page d'options ne sollicite
+plus l'API de permissions.
 
 ### 4.5 Flux de donnees
 

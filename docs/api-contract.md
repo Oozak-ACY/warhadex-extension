@@ -161,7 +161,7 @@ affichee en texte brut.
 
 | Reponse | Etat affiche |
 |---|---|
-| cle absente ou refusee (`401`, `403`) | « Verifiez la cle d'API dans les options » |
+| cle refusee (`401`, `403`) | « Acces a l'API Warhadex refuse » |
 | reseau injoignable | « Votre API est injoignable » |
 | `404` | « Aucun personnage trouve pour le moment » |
 | `429` | message d'erreur generique |
@@ -172,27 +172,22 @@ l'utilisateur, le cas est rare, et l'en-tete `Retry-After` n'est pas affiche.
 
 ## Authentification
 
-Obligatoire en production. Sans cle, ou avec une cle refusee, l'API repond
-`401` et l'extension affiche « Verifiez la cle d'API dans les options », plutot qu'une erreur generique : c'est un probleme de configuration
-que l'utilisateur peut corriger.
+Obligatoire. La cle est envoyee dans l'en-tete `X-API-Key`. Elle est integree a
+l'extension au moment du build, depuis la variable d'environnement
+`WARHADEX_API_KEY` ou le fichier `cle-api.local` a la racine du depot, et n'est
+pas un reglage : l'utilisateur ne peut ni la voir dans les options ni la
+remplacer.
 
-La cle est envoyee dans l'en-tete `X-API-Key`. Elle provient, par ordre de
-priorite :
+Ce fichier est ignore par git et la cle n'est ecrite que dans `dist/`. Le fichier
+versionne `src/core/config.js` garde une valeur vide. Sans cle, le build echoue
+plutot que de produire une extension incapable de joindre l'API.
 
-1. du champ des options, s'il est rempli, stocke dans `storage.local` et jamais
-   synchronise ;
-2. sinon de la cle integree au build, lue dans la variable d'environnement
-   `WARHADEX_API_KEY` ou dans le fichier `cle-api.local` a la racine du depot.
+Si l'API refuse la cle (`401` ou `403`), l'extension affiche « Acces a l'API
+Warhadex refuse ». Changer de cle impose un nouveau build et une nouvelle
+diffusion de l'extension.
 
-Ce fichier est ignore par git et la cle n'est ecrite que dans `dist/`. Le
-fichier versionne `src/core/config.js` garde une valeur vide.
-
-**Une cle integree a une extension n'est pas secrete.** Une extension est une
-archive que n'importe qui peut decompresser : la cle y est lisible par toute
-personne qui possede le build. Elle identifie un client, permet de le limiter en
-debit et de le revoquer, mais ne protege pas les donnees contre quelqu'un de
-determine. Si l'extension est distribuee, prevoir une cle dediee a ce client,
-revocable independamment des autres.
+La cle faisant partie de l'archive de l'extension, elle est lisible par quiconque
+possede le build : elle identifie le client, elle ne rend pas l'API privee.
 
 L'API ne repond pas aux preflight CORS (`OPTIONS` renvoie `405`). Ce n'est pas
 un probleme pour un service worker d'extension, qui contourne CORS sur un hote

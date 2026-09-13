@@ -3,11 +3,17 @@ import assert from 'node:assert/strict';
 import { createApiClient, ApiError } from '../src/core/api-client.js';
 import { startServer } from '../mock-api/server.mjs';
 
-function clientFor(url, extra = {}) {
-  return createApiClient({
-    baseUrl: url,
-    getSettings: async () => ({ apiKey: '', ...extra })
-  });
+function clientFor(url, apiKey = '') {
+  return createApiClient({ baseUrl: url, apiKey });
+}
+
+function espion(reponse = () => new Response(JSON.stringify({ items: [] }), { status: 200 })) {
+  const appels = [];
+  const fetchImpl = async (url, init) => {
+    appels.push({ url, headers: init.headers });
+    return reponse();
+  };
+  return { appels, fetchImpl };
 }
 
 test('resolve retourne les correspondances du serveur', async () => {
@@ -46,7 +52,7 @@ test('character leve une ApiError not-found sur 404', async () => {
   await server.close();
 });
 
-test('lever not-configured quand aucune url n est reglee', async () => {
+test('lever not-configured quand l adresse de base est vide', async () => {
   const client = clientFor('');
   await assert.rejects(
     () => client.resolve('calgar'),
@@ -57,7 +63,6 @@ test('lever not-configured quand aucune url n est reglee', async () => {
 test('lever offline quand fetch echoue', async () => {
   const client = createApiClient({
     baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => {
       throw new TypeError('network error');
     }
@@ -73,7 +78,6 @@ test('lever offline sans perdre la cause quand fetch echoue pour une raison non 
   const originalError = new RangeError('erreur de logique interne au fetchImpl');
   const client = createApiClient({
     baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => {
       throw originalError;
     }
@@ -95,25 +99,17 @@ test('lever not-configured plutot qu une TypeError brute quand l adresse de base
 });
 
 test('conserver le segment de chemin d une adresse de base a plusieurs segments', async () => {
-  let seenUrl;
-  const client = createApiClient({
-    baseUrl: 'https://api.example/warhadex',
-    getSettings: async () => ({ apiKey: '' }),
-    fetchImpl: async (url) => {
-      seenUrl = url;
-      return new Response(JSON.stringify({ items: [] }), { status: 200 });
-    }
-  });
+  const { appels, fetchImpl } = espion();
+  const client = createApiClient({ baseUrl: 'https://api.example/warhadex', fetchImpl });
 
   await client.resolve('calgar');
-  assert.equal(new URL(seenUrl).pathname, '/warhadex/search');
-  assert.equal(new URL(seenUrl).searchParams.get('type'), 'datasheet');
+  assert.equal(new URL(appels[0].url).pathname, '/warhadex/search');
+  assert.equal(new URL(appels[0].url).searchParams.get('type'), 'datasheet');
 });
 
 test('lever rate-limited sur 429', async () => {
   const client = createApiClient({
     baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => new Response('{}', { status: 429, headers: { 'retry-after': '30' } })
   });
 
@@ -123,20 +119,13 @@ test('lever rate-limited sur 429', async () => {
   );
 });
 
-test('envoyer la cle d api dans l en-tete X-API-Key quand elle est reglee', async () => {
-  let seen;
-  const client = createApiClient({
-    baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: 'secret' }),
-    fetchImpl: async (url, init) => {
-      seen = init.headers;
-      return new Response(JSON.stringify({ items: [] }), { status: 200 });
-    }
-  });
+test('envoyer la cle dans l en-tete X-API-Key', async () => {
+  const { appels, fetchImpl } = espion();
+  const client = createApiClient({ baseUrl: 'https://api.example', apiKey: 'secret', fetchImpl });
 
   await client.resolve('calgar');
-  assert.equal(seen['X-API-Key'], 'secret');
-  assert.equal(seen.Authorization, undefined, 'l API de prod ne lit pas Authorization');
+  assert.equal(appels[0].headers['X-API-Key'], 'secret');
+  assert.equal(appels[0].headers.Authorization, undefined, 'l API de prod ne lit pas Authorization');
 });
 
 test('abilities ramene le referentiel complet', async () => {
@@ -153,70 +142,54 @@ test('abilities ramene le referentiel complet', async () => {
 test('resolve rend un tableau vide quand items est absent', async () => {
   const client = createApiClient({
     baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => new Response(JSON.stringify({}), { status: 200 })
   });
 
   assert.deepEqual(await client.resolve('rien'), []);
 });
 
-test('une cle refusee est un probleme de configuration, pas une panne', async () => {
+test('une cle refusee est un acces refuse, pas une panne', async () => {
   for (const status of [401, 403]) {
     const client = createApiClient({
       baseUrl: 'https://api.example',
-      getSettings: async () => ({ apiKey: 'revoquee' }),
+      apiKey: 'revoquee',
       fetchImpl: async () => new Response('{}', { status })
     });
 
     await assert.rejects(
       () => client.resolve('calgar'),
       (error) => error instanceof ApiError && error.status === 'not-configured',
-      `un ${status} doit orienter vers les options`
+      `un ${status} doit etre traite comme un acces refuse`
     );
   }
 });
 
 test('aucun en-tete de cle n est envoye quand la cle est vide', async () => {
-  let seen;
-  const client = createApiClient({
-    baseUrl: 'https://api.example',
-    getSettings: async () => ({ apiKey: '' }),
-    fetchImpl: async (url, init) => {
-      seen = init.headers;
-      return new Response(JSON.stringify({ items: [] }), { status: 200 });
-    }
-  });
+  const { appels, fetchImpl } = espion();
+  const client = createApiClient({ baseUrl: 'https://api.example', apiKey: '', fetchImpl });
 
   await client.resolve('calgar');
-  assert.equal('X-API-Key' in seen, false);
+  assert.equal('X-API-Key' in appels[0].headers, false);
 });
 
 test('l extension ne parle qu a l API warhadex par defaut', async () => {
-  let seenUrl;
-  const client = createApiClient({
-    getSettings: async () => ({ apiKey: '' }),
-    fetchImpl: async (url) => {
-      seenUrl = url;
-      return new Response(JSON.stringify({ items: [] }), { status: 200 });
-    }
-  });
+  const { appels, fetchImpl } = espion();
+  const client = createApiClient({ fetchImpl });
 
   await client.resolve('calgar');
-  assert.equal(new URL(seenUrl).origin, 'https://warhadex-api.orion-sphere.fr');
+  assert.equal(new URL(appels[0].url).origin, 'https://warhadex-api.orion-sphere.fr');
 });
 
-// Regression : l adresse etait un reglage. Une valeur restee dans le stockage, ou
-// injectee par qui que ce soit, ne doit plus pouvoir detourner les appels
-test('une adresse venant des reglages est ignoree', async () => {
-  let seenUrl;
+// Regression : l adresse puis la cle etaient des reglages. Le client ne lit plus
+// rien dans le stockage : une valeur fournie par ce biais ne doit rien changer
+test('ni l adresse ni la cle ne peuvent venir des reglages', async () => {
+  const { appels, fetchImpl } = espion();
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://detournee.example', apiKey: '' }),
-    fetchImpl: async (url) => {
-      seenUrl = url;
-      return new Response(JSON.stringify({ items: [] }), { status: 200 });
-    }
+    fetchImpl,
+    getSettings: async () => ({ apiBaseUrl: 'https://detournee.example', apiKey: 'volee' })
   });
 
   await client.resolve('calgar');
-  assert.equal(new URL(seenUrl).origin, 'https://warhadex-api.orion-sphere.fr');
+  assert.equal(new URL(appels[0].url).origin, 'https://warhadex-api.orion-sphere.fr');
+  assert.notEqual(appels[0].headers['X-API-Key'], 'volee');
 });

@@ -18,7 +18,6 @@ globalThis.browser = browserStub;
 
 const FORM_HTML = `
   <form id="reglages">
-    <input id="apiKey" name="apiKey" type="password">
     <input id="cacheTtlDays" name="cacheTtlDays" type="number">
     <input id="showLauncher" name="showLauncher" type="checkbox">
     <button type="submit">Enregistrer</button>
@@ -28,7 +27,7 @@ const FORM_HTML = `
 `;
 
 // jsdom (unlike real browsers) does not implement HTMLFormElement named-property
-// access (form.apiKey), only form.elements.namedItem(name) - see
+// access (form.cacheTtlDays), only form.elements.namedItem(name) - see
 // https://html.spec.whatwg.org/#the-form-element:dom-form-nameditem. options.js
 // itself relies on the spec'd form.<name> shorthand, which every target browser
 // supports; this proxy patches just the test's document.querySelector so the
@@ -47,15 +46,13 @@ function patchNamedFormAccess(doc) {
   };
 }
 
-async function setup({ stored = {}, sendMessage } = {}) {
+async function setup({ stored = {}, storedLocal = {}, sendMessage } = {}) {
   const dom = new JSDOM(`<!doctype html><body>${FORM_HTML}</body>`, { url: 'https://example.com/options.html' });
   patchNamedFormAccess(dom.window.document);
   globalThis.document = dom.window.document;
 
-  // les reglages sont repartis sur deux aires : apiKey dans local, le reste dans sync
-  const { apiKey, ...synced } = stored;
-  browserStub.storage.sync.get = async () => synced;
-  browserStub.storage.local.get = async () => (apiKey === undefined ? {} : { apiKey });
+  browserStub.storage.sync.get = async () => stored;
+  browserStub.storage.local.get = async () => storedLocal;
 
   const setCalls = [];
   const localSetCalls = [];
@@ -109,25 +106,25 @@ function submit(doc, form) {
 }
 
 test('charger remplit le formulaire avec les reglages existants', async () => {
-  const { field } = await setup({
-    stored: { apiKey: 'abc', cacheTtlDays: 14, showLauncher: false }
-  });
+  const { field } = await setup({ stored: { cacheTtlDays: 14, showLauncher: false } });
 
-  assert.equal(field('apiKey').value, 'abc');
   assert.equal(field('cacheTtlDays').value, '14');
   assert.equal(field('showLauncher').checked, false);
 });
 
-test('la page d options ne propose plus de choisir l API', async () => {
-  const { field } = await setup({ stored: { apiBaseUrl: 'https://detournee.example' } });
+test('la page d options ne propose ni adresse ni cle d API', async () => {
+  const { field } = await setup({
+    stored: { apiBaseUrl: 'https://detournee.example' },
+    storedLocal: { apiKey: 'ancienne-cle' }
+  });
 
   assert.equal(field('apiBaseUrl'), null, 'aucun champ d adresse ne doit exister');
+  assert.equal(field('apiKey'), null, 'aucun champ de cle ne doit exister');
 });
 
-test('soumission enregistre les reglages sans solliciter les permissions', async () => {
+test('soumission enregistre les reglages sans cle ni permission', async () => {
   const { doc, form, field, etat, setCalls, localSetCalls, permissionCalls } = await setup();
 
-  field('apiKey').value = 'ma-cle';
   field('cacheTtlDays').value = '21';
   field('showLauncher').checked = true;
 
@@ -135,8 +132,7 @@ test('soumission enregistre les reglages sans solliciter les permissions', async
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.deepEqual(setCalls, [{ cacheTtlDays: 21, showLauncher: true }]);
-  // la cle d API ne doit jamais partir dans storage.sync
-  assert.deepEqual(localSetCalls, [{ apiKey: 'ma-cle' }]);
+  assert.deepEqual(localSetCalls, [], 'plus rien ne doit etre ecrit dans storage.local');
   assert.deepEqual(permissionCalls, [], 'plus aucune demande de permission');
   assert.equal(etat.textContent, 'Reglages enregistres');
   assert.equal(etat.dataset.erreur, 'false');

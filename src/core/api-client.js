@@ -1,3 +1,5 @@
+import { CLE_API_PAR_DEFAUT } from './config.js';
+
 export class ApiError extends Error {
   constructor(status, message, retryAfter, options) {
     super(message, options);
@@ -8,8 +10,7 @@ export class ApiError extends Error {
 }
 
 function mapHttpError(response) {
-  // cle absente, invalide ou revoquee : c est un probleme de configuration, que
-  // l utilisateur peut corriger, et non une panne
+  // cle absente, invalide ou revoquee : l acces est refuse, ce n est pas une panne
   if (response.status === 401 || response.status === 403) {
     return new ApiError('not-configured', 'cle d api refusee');
   }
@@ -21,13 +22,13 @@ function mapHttpError(response) {
   return new ApiError('error', `reponse ${response.status}`);
 }
 
-// L extension ne parle qu a cette API : l adresse n est pas un reglage, et une
-// valeur venant du stockage est ignoree. Le parametre ne sert qu aux tests
+// L extension ne parle qu a cette API, avec la cle integree au build : ni l adresse
+// ni la cle ne sont des reglages, et rien n est lu dans le stockage. Les parametres
+// ne servent qu aux tests
 export const URL_API = 'https://warhadex-api.orion-sphere.fr';
 
-export function createApiClient({ getSettings, fetchImpl = fetch, baseUrl = URL_API }) {
+export function createApiClient({ fetchImpl = fetch, baseUrl = URL_API, apiKey = CLE_API_PAR_DEFAUT } = {}) {
   async function request(path, params) {
-    const { apiKey } = await getSettings();
     if (!baseUrl) throw new ApiError('not-configured', 'url d api absente');
 
     let url;

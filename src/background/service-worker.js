@@ -5,7 +5,7 @@ import { createApiClient } from '../core/api-client.js';
 import { createResolver, toFailure, badgeState, BADGE_MESSAGES } from './resolver.js';
 import { setBadge } from './badge.js';
 
-const api = createApiClient({ getSettings });
+const api = createApiClient();
 const { handle } = createResolver({ api, cache, getSettings });
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {

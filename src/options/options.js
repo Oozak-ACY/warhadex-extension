@@ -1,6 +1,5 @@
 import browser from '../vendor/browser.js';
 import { getSettings, setSettings } from '../core/settings.js';
-import { CLE_API_PAR_DEFAUT } from '../core/config.js';
 import { MSG } from '../core/messages.js';
 
 const form = document.querySelector('#reglages');
@@ -13,19 +12,15 @@ function afficher(message, erreur = false) {
 
 async function charger() {
   const reglages = await getSettings();
-  // la cle integree n est pas affichee : l enregistrer depuis le champ la
-  // recopierait dans storage.local comme si l utilisateur l avait choisie
-  form.apiKey.value = reglages.apiKey === CLE_API_PAR_DEFAUT ? '' : reglages.apiKey;
   form.cacheTtlDays.value = reglages.cacheTtlDays;
   form.showLauncher.checked = reglages.showLauncher;
 }
 
-// l API est fixe et accordee a l installation : rien a demander au navigateur
+// l API et sa cle sont integrees : il ne reste que les reglages d affichage
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   await setSettings({
-    apiKey: form.apiKey.value,
     cacheTtlDays: Number(form.cacheTtlDays.value),
     showLauncher: form.showLauncher.checked
   });

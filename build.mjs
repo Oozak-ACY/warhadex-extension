@@ -50,13 +50,16 @@ async function buildTarget(target, base, overrides, cle) {
 const base = JSON.parse(await readFile(path.join(SRC, 'manifest.json'), 'utf8'));
 const overrides = JSON.parse(await readFile(path.join(SRC, 'manifest.firefox.json'), 'utf8'));
 
+// Sans cle l extension serait installable mais incapable de joindre l API, et
+// plus rien ne permet de la lui fournir apres coup : mieux vaut refuser le build
 const cle = await lireCle();
 if (!cle) {
   process.stderr.write(
-    `Aucune cle d API : definir WARHADEX_API_KEY ou creer ${FICHIER_CLE}. L extension devra la recevoir depuis ses options\n`
+    `Build interrompu : aucune cle d API. Definir WARHADEX_API_KEY ou creer ${FICHIER_CLE}\n`
   );
-}
-
-for (const target of TARGETS) {
-  await buildTarget(target, base, overrides, cle);
+  process.exitCode = 1;
+} else {
+  for (const target of TARGETS) {
+    await buildTarget(target, base, overrides, cle);
+  }
 }
