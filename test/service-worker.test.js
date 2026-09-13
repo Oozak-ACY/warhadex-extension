@@ -4,6 +4,7 @@ import { ApiError } from '../src/core/api-client.js';
 import { MSG, STATUS } from '../src/core/messages.js';
 import {
   candidats,
+  cleFiche,
   createResolver,
   toFailure,
   badgeState,
@@ -153,7 +154,7 @@ test('une resolution positive est memorisee avec le TTL des fiches', async () =>
   await resolver.resolveName('a', 'warhammer.com');
 
   const resolveWrite = cache.writes.find((write) => write.key === 'resolve:a');
-  const characterWrite = cache.writes.find((write) => write.key === 'character:a');
+  const characterWrite = cache.writes.find((write) => write.key === cleFiche('a'));
   assert.equal(resolveWrite.ttlMs, 3 * DAY_MS);
   assert.equal(characterWrite.ttlMs, 3 * DAY_MS, 'la fiche suit le meme TTL configure');
 });
@@ -180,7 +181,7 @@ test('un TTL de fiche absent ou invalide retombe sur sept jours', async () => {
 test('une resolution deja en cache ne rappelle pas l API', async () => {
   const { api, cache, resolver } = setup({ matches: [{ id: 'autre', score: 0.99 }] });
   cache.seed('resolve:a', [{ id: 'a', score: 0.99 }]);
-  cache.seed('character:a', { id: 'a', name: 'Deja vu' });
+  cache.seed(cleFiche('a'), { id: 'a', name: 'Deja vu' });
 
   const result = await resolver.resolveName('a', 'warhammer.com');
 
@@ -188,6 +189,17 @@ test('une resolution deja en cache ne rappelle pas l API', async () => {
   assert.deepEqual(api.calls.resolve, []);
   assert.deepEqual(api.calls.character, []);
   assert.deepEqual(cache.writes, [], 'rien ne doit etre reecrit quand tout vient du cache');
+});
+
+test('une fiche memorisee dans un format anterieur est rechargee', async () => {
+  const { api, cache, resolver } = setup({ matches: [{ id: 'a', score: 0.99 }] });
+  cache.seed('character:a', { id: 'a', name: 'Ancien format' });
+
+  const result = await resolver.resolveName('a', 'warhammer.com');
+
+  assert.notEqual(result.character.name, 'Ancien format');
+  assert.deepEqual(api.calls.character, ['a']);
+  assert.equal(cleFiche('a'), 'character:v2:a');
 });
 
 test('un cache negatif memorise evite un nouvel appel a l API', async () => {
@@ -357,7 +369,7 @@ test('un referentiel injoignable degrade la fiche sans la faire echouer', async 
   assert.equal(result.character.abilities[0].name, 'Core', 'le type remplace le nom absent');
   assert.equal(result.character.abilities[0].text, '');
 
-  const write = cache.writes.find((entry) => entry.key === 'character:a');
+  const write = cache.writes.find((entry) => entry.key === cleFiche('a'));
   assert.equal(write.ttlMs, NEGATIVE_TTL_MS, 'une fiche degradee ne se garde qu une journee');
 });
 
@@ -379,7 +391,7 @@ test('l agregat est traduit en fiche avant d etre memorise', async () => {
   assert.deepEqual(result.character.points, [{ models: 5, label: '5 models', cost: 80 }]);
   assert.equal(result.character.invulnerable, null);
 
-  const write = cache.writes.find((entry) => entry.key === 'character:a');
+  const write = cache.writes.find((entry) => entry.key === cleFiche('a'));
   assert.equal(write.value.faction, 'Space Marines', 'c est la fiche mappee qui est cachee');
 });
 

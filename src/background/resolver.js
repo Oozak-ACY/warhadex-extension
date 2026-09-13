@@ -6,6 +6,15 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const NEGATIVE_TTL_MS = DAY_MS;
 // le referentiel d aptitudes ne bouge qu aux mises a jour de regles
 export const ABILITIES_TTL_MS = 30 * DAY_MS;
+// le cache garde la fiche deja mappee : incrementer ce numero a chaque
+// changement du mapper, sinon les fiches deja vues restent a l ancien format
+// jusqu a expiration
+export const FORMAT_FICHE = 2;
+
+export function cleFiche(id) {
+  return `character:v${FORMAT_FICHE}:${id}`;
+}
+
 // un titre marchand encadre souvent le nom de l unite par la faction ou la gamme,
 // et l API n a pas de recherche approchante. Les marchands ne s accordent pas sur
 // le cote : warhammer.com et Philibert prefixent, Wayland suffixe. On retente donc
@@ -83,7 +92,8 @@ export function createResolver({ api, cache, getSettings }) {
   }
 
   async function loadCharacter(id) {
-    const cached = await cache.get(`character:${id}`);
+    const cle = cleFiche(id);
+    const cached = await cache.get(cle);
     if (cached !== undefined) return cached;
 
     const aggregate = await api.character(id);
@@ -92,7 +102,7 @@ export function createResolver({ api, cache, getSettings }) {
 
     // une fiche mappee sans referentiel est degradee : la garder une journee
     // seulement pour qu elle se repare d elle meme
-    await cache.set(`character:${id}`, character, complet ? await ficheTtl() : NEGATIVE_TTL_MS);
+    await cache.set(cle, character, complet ? await ficheTtl() : NEGATIVE_TTL_MS);
     return character;
   }
 
