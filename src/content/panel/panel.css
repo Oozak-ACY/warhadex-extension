@@ -13,6 +13,8 @@
   --wx-gueules: #9b1c1c;
   --wx-gueules-fonce: #7f1616;
   --wx-filet: #d9c9ad;
+  --wx-cadre: #c9b597;
+  --wx-filet-fort: #b39c7a;
   --wx-titre: 'Warhadex Cinzel', 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
   --wx-texte: 'Warhadex Garamond', 'EB Garamond', Garamond, Georgia, 'Times New Roman', serif;
 
@@ -176,7 +178,11 @@
   margin: 0 0 12px;
 }
 
+/* registre : bandeau rouge, lignes alternees, groupes separes par des traits rouges.
+   Les separations dependent de l ordre des colonnes fixe dans render/weapons.js :
+   arme, portee, cinq caracteristiques, mots cles */
 .wx-table {
+  border: 1px solid var(--wx-cadre);
   border-collapse: collapse;
   font-size: 13px;
   width: 100%;
@@ -184,15 +190,43 @@
 
 .wx-table th,
 .wx-table td {
-  border-bottom: 1px solid var(--wx-filet);
-  padding: 4px;
+  padding: 5px 4px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.wx-table th:first-child,
+.wx-table td:first-child,
+.wx-table th:last-child,
+.wx-table td:last-child {
   text-align: left;
 }
 
 .wx-table th {
-  color: var(--wx-encre-2);
+  background: var(--wx-gueules);
+  color: var(--wx-parchemin);
   font: 11px/1.4 var(--wx-titre);
   letter-spacing: 0.3px;
+}
+
+.wx-table tbody tr:nth-child(even) td {
+  background: var(--wx-parchemin-2);
+}
+
+.wx-table td:nth-child(2),
+.wx-table td:nth-child(3),
+.wx-table td:last-child {
+  border-left: 2px solid var(--wx-gueules);
+}
+
+.wx-table th:nth-child(2),
+.wx-table th:nth-child(3),
+.wx-table th:last-child {
+  border-left: 2px solid var(--wx-parchemin);
+}
+
+.wx-table td:nth-child(n + 4):not(:last-child) {
+  border-left: 1px dotted var(--wx-filet-fort);
 }
 
 .wx-ability p {

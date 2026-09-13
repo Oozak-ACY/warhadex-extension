@@ -224,3 +224,19 @@ test('renderAbilities n ouvre pas de bloc pour une aptitude sans texte', () => {
   assert.equal(node.querySelector('details'), null, 'rien a deplier sans texte');
   assert.match(node.textContent, /Core/);
 });
+
+// Les separations de groupes de panel.css ciblent les colonnes par position :
+// ajouter, retirer ou deplacer une colonne ferait tomber les traits rouges au
+// mauvais endroit sans qu aucun autre test ne le voie
+test('renderWeapons garde l ordre de colonnes dont depend le style en registre', () => {
+  const node = renderWeapons(doc, character.weapons);
+  for (const tableau of node.querySelectorAll('table')) {
+    assert.deepEqual(
+      [...tableau.querySelectorAll('thead th')].map((n) => n.textContent),
+      ['Arme', 'Portee', 'A', 'CT/CC', 'F', 'PA', 'D', 'Mots cles']
+    );
+    for (const ligne of tableau.querySelectorAll('tbody tr')) {
+      assert.equal(ligne.children.length, 8, 'chaque ligne doit porter les huit cellules');
+    }
+  }
+});
