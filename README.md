@@ -29,9 +29,8 @@ n'est necessaire pour developper l'extension (pas de bundler, pas de
 dependance runtime).
 
 Cote navigateur, l'extension vise Manifest V3 : Chrome 111 ou superieur,
-Firefox 116 ou superieur (version a partir de laquelle Gecko prend en charge
-`optional_host_permissions`, requis par le flux de configuration de l'API, et
-valeur declaree en `strict_min_version`), Safari 16.4 ou superieur.
+Firefox 116 ou superieur (valeur declaree en `strict_min_version` ; Manifest V3
+exige au minimum Firefox 109), Safari 16.4 ou superieur.
 
 ## Structure du projet
 
@@ -96,9 +95,9 @@ activer l'extension dans Safari via Reglages, Extensions, apres avoir coche
 
 ## Configuration
 
-L'extension interroge par defaut l'API de production
-`https://warhadex-api.orion-sphere.fr`, accordee des l'installation : il n'y a
-pas d'adresse a saisir.
+L'extension interroge exclusivement l'API `https://warhadex-api.orion-sphere.fr`.
+Son adresse est fixee dans le code : ce n'est pas un reglage, et aucune autre API
+n'est joignable, ni par une permission accordee ni par une permission demandable.
 
 L'API exige une cle, envoyee dans l'en-tete `X-API-Key`. Deux facons de la
 fournir, la premiere l'emportant sur la seconde :
@@ -115,8 +114,8 @@ fournir, la premiere l'emportant sur la seconde :
    depot. Ce fichier est ignore par git, et la cle n'est ecrite que dans
    `dist/` : `src/core/config.js` reste vide dans le depot.
 
-Sans cle, ou avec une cle refusee, le panneau affiche « Verifiez l'adresse et la
-cle d'API dans les options ».
+Sans cle, ou avec une cle refusee, le panneau affiche « Verifiez la cle d'API
+dans les options ».
 
 **Une cle integree au build n'est pas secrete.** Une extension est une archive
 que n'importe qui peut decompresser, la cle y est donc lisible par quiconque
@@ -124,13 +123,8 @@ possede le build. Elle permet d'identifier, limiter et revoquer un client, pas
 de proteger les donnees. Si l'extension est distribuee, lui attribuer une cle
 dediee, revocable sans toucher aux autres.
 
-Les options restent utiles pour pointer une autre API. `http://localhost:8000`
-reste autorise pour le developpement ; une autre adresse `https://` declenche
-une demande de permission a l'enregistrement. Un reglage enregistre sous une
-version precedente qui porte encore `http://localhost:8000` est ignore au profit
-de la production. La duree du cache et l'activation du lanceur se reglent au
-meme endroit. Les routes appelees et les champs lus sont documentes dans
-`docs/api-contract.md`.
+La duree du cache et l'activation du lanceur se reglent dans les options. Les
+routes appelees et les champs lus sont documentes dans `docs/api-contract.md`.
 
 ## Serveur mock
 
@@ -141,8 +135,8 @@ npm run mock
 Demarre le serveur mock (`mock-api/server.mjs`) sur `http://127.0.0.1:8787`.
 Il reproduit le sous-ensemble de routes que l'extension consomme, sur les memes
 formes de reponse que l'API reelle, et sert deux agregats captures tels quels.
-Il est utilise par les tests automatises et permet de renseigner `apiBaseUrl`
-sans API distante.
+Il est utilise par les tests automatises ; l'extension elle-meme ne peut pas
+l'interroger, son adresse d'API etant fixe.
 
 Routes exposees :
 
@@ -236,10 +230,9 @@ sur une vraie page produit. La checklist ci-dessous doit etre executee et
 cochee par une personne disposant d'un navigateur avant de considerer
 l'extension pret pour un usage reel.
 
-Prerequis pour cette verification : `npm run mock` lance, et l'API
-configuree sur `http://127.0.0.1:8787` dans les reglages de l'extension
-chargee (voir [Configuration](#configuration)). Utiliser un nom de
-personnage present dans `mock-api/data/characters.json`.
+Prerequis pour cette verification : une cle d'API valide, fournie au build
+ou dans les options (voir [Configuration](#configuration)). L'extension
+interroge l'API de production, son adresse n'etant pas reglable.
 
 ### Chrome
 
@@ -274,13 +267,16 @@ personnage present dans `mock-api/data/characters.json`.
 - [ ] Sur warhammer.com, page rendue cote client : le lanceur apparait meme
       quand le titre du produit arrive apres le chargement initial (reprise
       par observation du DOM, abandonnee au bout de dix secondes).
-- [ ] Avec le serveur mock arrete : le lanceur reste visible et son clic
-      ouvre le panneau sur le message "Votre API est injoignable".
-- [ ] La page d'options s'ouvre, accepte une URL d'API, demande la
-      permission d'hote correspondante, et enregistre les reglages.
+- [ ] Reseau coupe : le lanceur reste visible et son clic ouvre le panneau
+      sur le message "Votre API est injoignable".
+- [ ] Sans cle ou avec une cle invalide : le panneau affiche "Verifiez la cle
+      d API dans les options".
+- [ ] La page d'options s'ouvre, ne propose aucun champ d'adresse, et
+      enregistre la cle, la duree du cache et l'activation du lanceur sans
+      demande de permission.
 - [ ] Le bouton "Vider le cache" fonctionne (verifiable en observant que la
-      resolution suivante repasse par le mock, ex. via les logs du serveur
-      mock).
+      resolution suivante repasse par l'API, dans l'onglet Reseau de la console
+      du service worker).
 
 ### Firefox
 
@@ -289,8 +285,7 @@ personnage present dans `mock-api/data/characters.json`.
 - [ ] Meme sequence complete que Chrome (badge, lanceur, panneau, profil,
       armes, onglet Histoire) verifiee sur au moins un des quatre sites.
 - [ ] Navigation SPA sur warhammer.com verifiee comme ci-dessus.
-- [ ] La page d'options fonctionne (permission d'hote, enregistrement,
-      vidage du cache).
+- [ ] La page d'options fonctionne (enregistrement, vidage du cache).
 
 ### Safari
 
@@ -343,6 +338,6 @@ Une cle saisie dans les options est conservee localement : elle est stockee dans
 le service de synchronisation de votre navigateur. Une cle integree au build, en
 revanche, fait partie de l'archive de l'extension et reste lisible par quiconque
 la decompresse : voir [Configuration](#configuration). Les autres
-reglages (adresse de l'API, duree du cache, affichage du lanceur) sont eux
+reglages (duree du cache, affichage du lanceur) sont eux
 dans `storage.sync` et suivent donc votre profil. Le bouton "Vider le cache"
 ne supprime que les entrees de cache prefixees, jamais vos reglages.

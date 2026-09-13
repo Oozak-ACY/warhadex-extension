@@ -21,14 +21,18 @@ function mapHttpError(response) {
   return new ApiError('error', `reponse ${response.status}`);
 }
 
-export function createApiClient({ getSettings, fetchImpl = fetch }) {
+// L extension ne parle qu a cette API : l adresse n est pas un reglage, et une
+// valeur venant du stockage est ignoree. Le parametre ne sert qu aux tests
+export const URL_API = 'https://warhadex-api.orion-sphere.fr';
+
+export function createApiClient({ getSettings, fetchImpl = fetch, baseUrl = URL_API }) {
   async function request(path, params) {
-    const { apiBaseUrl, apiKey } = await getSettings();
-    if (!apiBaseUrl) throw new ApiError('not-configured', 'url d api non reglee');
+    const { apiKey } = await getSettings();
+    if (!baseUrl) throw new ApiError('not-configured', 'url d api absente');
 
     let url;
     try {
-      url = new URL(path, apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`);
+      url = new URL(path, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`);
     } catch (err) {
       throw new ApiError('not-configured', 'url d api invalide', undefined, { cause: err });
     }

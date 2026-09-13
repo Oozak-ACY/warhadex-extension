@@ -26,13 +26,8 @@
   "permissions": [
     "storage"
   ],
-  "optional_host_permissions": [
-    "https://*/*"
-  ],
   "host_permissions": [
     "https://warhadex-api.orion-sphere.fr/*",
-    "http://localhost/*",
-    "http://127.0.0.1/*",
     "https://*.warhammer.com/*",
     "https://*.elementgames.co.uk/*",
     "https://*.waylandgames.co.uk/*",

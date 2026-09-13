@@ -110,10 +110,11 @@ courant.
 
 ### 4.4 options - configuration
 
-Page d'options permettant de saisir l'URL de base de l'API, une cle d'API
-facultative, et les reglages d'affichage. A l'enregistrement de l'URL,
-l'extension demande la permission d'hote correspondante via
-`permissions.request`, declenchee par le geste utilisateur.
+Page d'options permettant de saisir une cle d'API et les reglages d'affichage.
+L'adresse de l'API n'est pas un reglage : l'extension ne parle qu'a
+`https://warhadex-api.orion-sphere.fr`, fixee dans le code et accordee en
+`host_permissions` des l'installation. Aucune permission d'hote facultative
+n'est declaree, et la page d'options ne sollicite plus l'API de permissions.
 
 ### 4.5 Flux de donnees
 
@@ -223,11 +224,12 @@ Source unique. Un script de build assemble trois repertoires de distribution en
 substituant le manifeste.
 
 Socles de version : Chrome 111 et superieur, Firefox 116 et superieur,
-Safari 16.4 et superieur. Le socle Firefox est impose par
-`optional_host_permissions`, cle de manifeste Gecko 116+ dont depend le flux
-de configuration de l'API ; le support de Manifest V3 lui-meme des Firefox
-109, et l'`import()` dynamique en content script des Firefox 101, sont des
-contraintes reelles mais moins hautes, donc non determinantes.
+Safari 16.4 et superieur. Le socle Firefox declare reste a 116, mais il n'est
+plus impose : il l'etait par `optional_host_permissions`, retire depuis que
+l'adresse de l'API est fixe. La contrainte reelle la plus haute est desormais
+le support de Manifest V3, des Firefox 109 ; l'`import()` dynamique en content
+script, des Firefox 101, n'est pas determinant. Abaisser le socle a 109 serait
+donc possible, mais n'a pas ete verifie en navigateur.
 
 - Chrome et derives Chromium : `background.service_worker`, MV3 natif.
 - Firefox : `background.scripts` avec `type: module`, plus

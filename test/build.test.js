@@ -32,24 +32,22 @@ test('build produit les trois cibles avec le bon manifeste', () => {
   assert.ok(safari.background.service_worker);
 });
 
-// L API locale documentee dans le README est sur http://127.0.0.1:8787 : sans motif
-// http de bouclage declare, permissions.request rejette et la page d options ne peut
-// rien enregistrer. On refuse en revanche tout http://*/* general.
-test('les permissions d hote facultatives couvrent le bouclage http sans ouvrir tout http', () => {
+// L extension ne parle qu a warhadex-api : aucune autre API ne doit etre joignable,
+// ni par une permission accordee ni par une permission facultative demandable
+test('seule l API warhadex est joignable en plus des sites marchands', () => {
   const chrome = JSON.parse(readFileSync('dist/chrome/manifest.json', 'utf8'));
-  // l API de reference est locale et accordee des l installation : plus rien a
-  // saisir ni a autoriser dans le cas courant
-  for (const motif of ['http://localhost/*', 'http://127.0.0.1/*']) {
-    assert.ok(chrome.host_permissions.includes(motif), `motif local manquant : ${motif}`);
-  }
-  assert.deepEqual(chrome.optional_host_permissions, ['https://*/*'], 'seule une API distante reste optionnelle');
-  assert.ok(!chrome.host_permissions.includes('http://*/*'), 'http general ne doit pas etre declare');
+  assert.equal(chrome.optional_host_permissions, undefined, 'aucune permission d hote facultative');
+
+  const autres = chrome.host_permissions.filter(
+    (motif) => !/\.(warhammer\.com|elementgames\.co\.uk|waylandgames\.co\.uk|philibertnet\.com)\//.test(motif)
+  );
+  assert.deepEqual(autres, ['https://warhadex-api.orion-sphere.fr/*']);
 });
 
 test('firefox declare un socle de version compatible manifest v3', () => {
   const firefox = JSON.parse(readFileSync('dist/firefox/manifest.json', 'utf8'));
   const min = Number(firefox.browser_specific_settings.gecko.strict_min_version.split('.')[0]);
-  assert.ok(min >= 116, `optional_host_permissions exige Firefox 116 ou superieur, declare : ${min}`);
+  assert.ok(min >= 109, `Manifest V3 exige Firefox 109 ou superieur, declare : ${min}`);
 });
 
 // L API de production ne repond pas aux preflight CORS. Un service worker

@@ -4,15 +4,10 @@ Ce document decrit les routes et les champs que l'extension utilise reellement.
 Il ne specifie plus une API a implementer : il documente l'integration avec
 l'API existante, telle qu'elle a ete verifiee en direct.
 
-L'adresse de base est preremplie sur `https://warhadex-api.orion-sphere.fr`,
-sans suffixe de version, et ce domaine est accorde des l'installation : dans le
-cas courant il n'y a rien a saisir. Le champ des options reste modifiable, et
-`http://localhost:8000` reste autorise pour le developpement.
-
-Si un reglage enregistre sous une version precedente porte encore
-`http://localhost:8000`, il est ignore au profit de la production : la page
-d'options enregistrait l'objet complet, defaut compris, et ce n'etait donc pas
-un choix de l'utilisateur.
+L'extension n'interroge que `https://warhadex-api.orion-sphere.fr`, sans suffixe
+de version. L'adresse est fixee dans le code : ce n'est pas un reglage, et une
+adresse enregistree par une version precedente n'est plus jamais lue. Ce domaine
+est accorde des l'installation, et aucune autre API n'est joignable.
 
 ## Routes utilisees
 
@@ -166,7 +161,7 @@ affichee en texte brut.
 
 | Reponse | Etat affiche |
 |---|---|
-| adresse absente ou malformee | « Renseignez l'adresse de votre API » |
+| cle absente ou refusee (`401`, `403`) | « Verifiez la cle d'API dans les options » |
 | reseau injoignable | « Votre API est injoignable » |
 | `404` | « Aucun personnage trouve pour le moment » |
 | `429` | message d'erreur generique |
@@ -178,8 +173,7 @@ l'utilisateur, le cas est rare, et l'en-tete `Retry-After` n'est pas affiche.
 ## Authentification
 
 Obligatoire en production. Sans cle, ou avec une cle refusee, l'API repond
-`401` et l'extension affiche « Verifiez l'adresse et la cle d'API dans les
-options », plutot qu'une erreur generique : c'est un probleme de configuration
+`401` et l'extension affiche « Verifiez la cle d'API dans les options », plutot qu'une erreur generique : c'est un probleme de configuration
 que l'utilisateur peut corriger.
 
 La cle est envoyee dans l'en-tete `X-API-Key`. Elle provient, par ordre de

@@ -5,7 +5,8 @@ import { startServer } from '../mock-api/server.mjs';
 
 function clientFor(url, extra = {}) {
   return createApiClient({
-    getSettings: async () => ({ apiBaseUrl: url, apiKey: '', ...extra })
+    baseUrl: url,
+    getSettings: async () => ({ apiKey: '', ...extra })
   });
 }
 
@@ -55,7 +56,8 @@ test('lever not-configured quand aucune url n est reglee', async () => {
 
 test('lever offline quand fetch echoue', async () => {
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => {
       throw new TypeError('network error');
     }
@@ -70,7 +72,8 @@ test('lever offline quand fetch echoue', async () => {
 test('lever offline sans perdre la cause quand fetch echoue pour une raison non reseau', async () => {
   const originalError = new RangeError('erreur de logique interne au fetchImpl');
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => {
       throw originalError;
     }
@@ -82,7 +85,7 @@ test('lever offline sans perdre la cause quand fetch echoue pour une raison non 
   );
 });
 
-test('lever not-configured plutot qu une TypeError brute quand apiBaseUrl est invalide', async () => {
+test('lever not-configured plutot qu une TypeError brute quand l adresse de base est invalide', async () => {
   const client = clientFor('not a url');
 
   await assert.rejects(
@@ -91,10 +94,11 @@ test('lever not-configured plutot qu une TypeError brute quand apiBaseUrl est in
   );
 });
 
-test('conserver le segment de chemin d une apiBaseUrl a plusieurs segments', async () => {
+test('conserver le segment de chemin d une adresse de base a plusieurs segments', async () => {
   let seenUrl;
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example/warhadex', apiKey: '' }),
+    baseUrl: 'https://api.example/warhadex',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async (url) => {
       seenUrl = url;
       return new Response(JSON.stringify({ items: [] }), { status: 200 });
@@ -108,7 +112,8 @@ test('conserver le segment de chemin d une apiBaseUrl a plusieurs segments', asy
 
 test('lever rate-limited sur 429', async () => {
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => new Response('{}', { status: 429, headers: { 'retry-after': '30' } })
   });
 
@@ -121,7 +126,8 @@ test('lever rate-limited sur 429', async () => {
 test('envoyer la cle d api dans l en-tete X-API-Key quand elle est reglee', async () => {
   let seen;
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: 'secret' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: 'secret' }),
     fetchImpl: async (url, init) => {
       seen = init.headers;
       return new Response(JSON.stringify({ items: [] }), { status: 200 });
@@ -146,7 +152,8 @@ test('abilities ramene le referentiel complet', async () => {
 
 test('resolve rend un tableau vide quand items est absent', async () => {
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async () => new Response(JSON.stringify({}), { status: 200 })
   });
 
@@ -156,7 +163,8 @@ test('resolve rend un tableau vide quand items est absent', async () => {
 test('une cle refusee est un probleme de configuration, pas une panne', async () => {
   for (const status of [401, 403]) {
     const client = createApiClient({
-      getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: 'revoquee' }),
+      baseUrl: 'https://api.example',
+      getSettings: async () => ({ apiKey: 'revoquee' }),
       fetchImpl: async () => new Response('{}', { status })
     });
 
@@ -171,7 +179,8 @@ test('une cle refusee est un probleme de configuration, pas une panne', async ()
 test('aucun en-tete de cle n est envoye quand la cle est vide', async () => {
   let seen;
   const client = createApiClient({
-    getSettings: async () => ({ apiBaseUrl: 'https://api.example', apiKey: '' }),
+    baseUrl: 'https://api.example',
+    getSettings: async () => ({ apiKey: '' }),
     fetchImpl: async (url, init) => {
       seen = init.headers;
       return new Response(JSON.stringify({ items: [] }), { status: 200 });
@@ -180,4 +189,34 @@ test('aucun en-tete de cle n est envoye quand la cle est vide', async () => {
 
   await client.resolve('calgar');
   assert.equal('X-API-Key' in seen, false);
+});
+
+test('l extension ne parle qu a l API warhadex par defaut', async () => {
+  let seenUrl;
+  const client = createApiClient({
+    getSettings: async () => ({ apiKey: '' }),
+    fetchImpl: async (url) => {
+      seenUrl = url;
+      return new Response(JSON.stringify({ items: [] }), { status: 200 });
+    }
+  });
+
+  await client.resolve('calgar');
+  assert.equal(new URL(seenUrl).origin, 'https://warhadex-api.orion-sphere.fr');
+});
+
+// Regression : l adresse etait un reglage. Une valeur restee dans le stockage, ou
+// injectee par qui que ce soit, ne doit plus pouvoir detourner les appels
+test('une adresse venant des reglages est ignoree', async () => {
+  let seenUrl;
+  const client = createApiClient({
+    getSettings: async () => ({ apiBaseUrl: 'https://detournee.example', apiKey: '' }),
+    fetchImpl: async (url) => {
+      seenUrl = url;
+      return new Response(JSON.stringify({ items: [] }), { status: 200 });
+    }
+  });
+
+  await client.resolve('calgar');
+  assert.equal(new URL(seenUrl).origin, 'https://warhadex-api.orion-sphere.fr');
 });
