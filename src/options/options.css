@@ -1,4 +1,21 @@
 /* meme palette heraldique que le panneau, verifiee par test/palette.test.js */
+/* la page d options est une page d extension : elle charge les polices directement */
+@font-face {
+  font-family: 'Warhadex Cinzel';
+  src: url('../assets/fonts/cinzel.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Warhadex Garamond';
+  src: url('../assets/fonts/eb-garamond.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --wx-parchemin: #f7f2e8;
   --wx-parchemin-2: #efe6d6;
@@ -9,8 +26,8 @@
   --wx-gueules-fonce: #7f1616;
   --wx-filet: #d9c9ad;
   --wx-erreur: #8a1616;
-  --wx-titre: 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
-  --wx-texte: 'EB Garamond', Garamond, Georgia, 'Times New Roman', serif;
+  --wx-titre: 'Warhadex Cinzel', 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
+  --wx-texte: 'Warhadex Garamond', 'EB Garamond', Garamond, Georgia, 'Times New Roman', serif;
 }
 
 body {

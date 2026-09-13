@@ -20,6 +20,7 @@ dependance runtime.
 - [Ajouter un site marchand](#ajouter-un-site-marchand)
 - [Verification manuelle en navigateur (a faire)](#verification-manuelle-en-navigateur-a-faire)
 - [Copyright et responsabilite du contenu](#copyright-et-responsabilite-du-contenu)
+- [Polices](#polices)
 - [Confidentialite](#confidentialite)
 
 ## Prerequis
@@ -320,6 +321,21 @@ aptitudes — et non d'une base redistribuee, mais la distinction est de fait,
 pas de droit. Si ce depot doit devenir public, il faut soit remplacer ces
 fixtures par des donnees fabriquees, soit les generer a la demande depuis
 votre API plutot que les versionner.
+
+## Polices
+
+Le panneau utilise Cinzel pour les titres et EB Garamond pour le texte, deux
+polices sous licence SIL Open Font License embarquees dans `src/assets/fonts/`
+avec leur licence (`OFL-cinzel.txt`, `OFL-eb-garamond.txt`). Seul le
+sous-ensemble latin des fichiers variables est inclus, graisses 400 a 600, soit
+environ 70 Ko.
+
+Chrome ignore les regles `@font-face` declarees dans un Shadow DOM : le content
+script declare donc ces polices une fois dans le document de la page, sous des
+noms propres a l'extension (`Warhadex Cinzel`, `Warhadex Garamond`) pour ne
+jamais redefinir une police du site marchand. Si la politique de securite d'un
+site bloque leur chargement, le panneau retombe sur une police systeme a
+empattements.
 
 ## Confidentialite
 

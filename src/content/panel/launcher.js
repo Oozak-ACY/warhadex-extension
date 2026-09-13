@@ -12,7 +12,7 @@ const STYLE = `
   border-radius: 3px;
   color: #f7f2e8;
   cursor: pointer;
-  font: 600 13px/1 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
+  font: 600 13px/1 'Warhadex Cinzel', 'Cinzel', 'Trajan Pro', 'Times New Roman', Georgia, serif;
   letter-spacing: 0.5px;
   padding: 10px 16px;
   box-shadow: 0 4px 12px rgba(42, 26, 20, 0.35);

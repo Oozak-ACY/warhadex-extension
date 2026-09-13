@@ -2,6 +2,7 @@ import browser from '../vendor/browser.js';
 import { detect } from './detect/index.js';
 import { createPanel } from './panel/panel.js';
 import { createLauncher } from './panel/launcher.js';
+import { injecterPolices } from './panel/fonts.js';
 import { observeUrlChanges } from './spa-observer.js';
 import { MSG, STATUS } from '../core/messages.js';
 import { getSettings } from '../core/settings.js';
@@ -162,6 +163,8 @@ async function analyser({ reessayer = true } = {}) {
 export async function start() {
   const { showLauncher } = await getSettings();
   if (!showLauncher) return;
+
+  injecterPolices(document, (chemin) => browser.runtime.getURL(chemin));
 
   panel = await createPanel({ doc: document, onSelect: ouvrirFiche, onSearch: chercherParNom });
   launcher = createLauncher({ doc: document, onClick: () => panel.open() });

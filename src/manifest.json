@@ -54,7 +54,8 @@
         "content/*",
         "core/*",
         "vendor/*",
-        "assets/icons/*"
+        "assets/icons/*",
+        "assets/fonts/*"
       ],
       "matches": [
         "https://*.warhammer.com/*",
