@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { el } from '../src/content/panel/render/el.js';
-import { renderDatasheet } from '../src/content/panel/render/datasheet.js';
+import { renderDatasheet, libelleSocle } from '../src/content/panel/render/datasheet.js';
 import { renderWeapons } from '../src/content/panel/render/weapons.js';
 import { renderAbilities } from '../src/content/panel/render/abilities.js';
 import { renderLore } from '../src/content/panel/render/lore.js';
@@ -49,6 +49,31 @@ test('renderDatasheet affiche les six caracteristiques et l invulnerable', () =>
   assert.deepEqual(labels, ['M', 'T', 'SV', 'W', 'LD', 'OC']);
   assert.match(node.textContent, /4\+/);
   assert.match(node.textContent, /95/);
+});
+
+test('libelleSocle traduit chaque forme servie par l API', () => {
+  assert.equal(libelleSocle('32mm'), 'Socle 32mm');
+  assert.equal(libelleSocle('90 x 52mm'), 'Socle ovale 90 x 52mm');
+  assert.equal(libelleSocle('120 x 92mm flying base'), 'Socle volant 120 x 92mm');
+  assert.equal(libelleSocle('60mm flying base'), 'Socle volant 60mm');
+  assert.equal(libelleSocle('Use model'), 'Sans socle');
+  assert.equal(libelleSocle('Large'), 'Socle Large');
+  assert.equal(libelleSocle('50mm', 'with pillar'), 'Socle 50mm (with pillar)');
+  assert.equal(libelleSocle(null, 'orpheline'), null);
+  assert.equal(libelleSocle(''), null);
+});
+
+test('renderDatasheet affiche le socle de chaque profil et rien sans donnee', () => {
+  const node = renderDatasheet(doc, {
+    ...character,
+    profiles: [
+      { name: 'GHAZGHKULL THRAKA', m: '6"', t: 10, sv: '2+', w: 12, ld: '6+', oc: 4, base: '80mm' },
+      { name: 'MAKARI', m: '6"', t: 5, sv: '4+', w: 3, ld: '7+', oc: 1, base: '25mm' },
+      { name: 'SANS', m: '6"', t: 5, sv: '4+', w: 3, ld: '7+', oc: 1, base: null }
+    ]
+  });
+  const socles = [...node.querySelectorAll('.wx-profile')].map((p) => p.querySelector('.wx-base')?.textContent ?? null);
+  assert.deepEqual(socles, ['Socle 80mm', 'Socle 25mm', null]);
 });
 
 test('renderWeapons separe les armes de tir et de melee', () => {

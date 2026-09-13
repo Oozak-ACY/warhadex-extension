@@ -20,6 +20,11 @@ function suffixer(valeur) {
   return /^\d+$/.test(brut) ? `${brut}+` : brut;
 }
 
+function nettoyer(valeur) {
+  const brut = String(valeur ?? '').trim();
+  return !brut || brut === '-' ? null : brut;
+}
+
 function profils(models) {
   return (models ?? []).map((model) => ({
     name: model.name ?? '',
@@ -28,7 +33,9 @@ function profils(models) {
     sv: model.Sv ?? '-',
     w: model.W ?? '-',
     ld: model.Ld ?? '-',
-    oc: model.OC ?? '-'
+    oc: model.OC ?? '-',
+    base: nettoyer(model.base_size),
+    baseNote: nettoyer(model.base_size_descr)
   }));
 }
 

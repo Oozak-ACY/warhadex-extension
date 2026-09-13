@@ -167,6 +167,12 @@
   font-weight: 600;
 }
 
+.wx-base {
+  color: var(--wx-encre-2);
+  font-size: 13px;
+  margin: -6px 0 12px;
+}
+
 .wx-invul {
   color: var(--wx-gueules);
   font-weight: 600;

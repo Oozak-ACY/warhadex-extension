@@ -105,6 +105,8 @@ Voici la correspondance exacte.
 | `models[]` | une ligne de profil par entree : `M`, `T`, `Sv`, `W`, `Ld`, `OC` |
 | `models[].name` | affiche seulement si l'unite porte plusieurs profils |
 | `models[].inv_sv` | sauvegarde invulnerable, `-` signifie aucune |
+| `models[].base_size` | taille de socle sous chaque profil : `32mm` rond, `90 x 52mm` ovale, `flying base` volant, `Use model` sans socle |
+| `models[].base_size_descr` | precision ajoutee entre parentheses, vide sur les fiches observees |
 | `wargear[]` | tableaux d'armes : `A`, `BS_WS`, `S`, `AP`, `D`, `range`, `type` |
 | `wargear[].description` | mots cles de l'arme, decoupes sur les virgules |
 | `abilities[]` | aptitudes, voir ci-dessous |

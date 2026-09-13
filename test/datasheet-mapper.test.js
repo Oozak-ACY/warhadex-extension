@@ -34,8 +34,20 @@ test('mappe une ligne de profil par modele', () => {
     sv: '2+',
     w: '6',
     ld: '6+',
-    oc: '1'
+    oc: '1',
+    base: '50mm',
+    baseNote: null
   });
+});
+
+test('garde la taille de socle brute et ignore une precision vide', () => {
+  const fiche = mapDatasheet(intercessors, index);
+  assert.equal(fiche.profiles[0].base, '32mm');
+  assert.equal(fiche.profiles[0].baseNote, null);
+
+  const sansSocle = mapDatasheet({ id: 'x', name: 'Test', models: [{ base_size: ' ', base_size_descr: 'Oval' }] });
+  assert.equal(sansSocle.profiles[0].base, null);
+  assert.equal(sansSocle.profiles[0].baseNote, 'Oval');
 });
 
 test('deduit la sauvegarde invulnerable en ajoutant le plus', () => {

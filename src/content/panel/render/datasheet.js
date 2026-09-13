@@ -22,9 +22,32 @@ function points(doc, entries) {
   return el(doc, 'p', { class: 'wx-points' }, entries.map(palier).join(' | '));
 }
 
+// l API sert 32mm, 90 x 52mm, 120 x 92mm flying base ou Use model pour un vehicule
+// mesure depuis sa coque
+export function libelleSocle(base, note) {
+  const brut = String(base ?? '').trim();
+  if (!brut) return null;
+
+  let libelle;
+  if (/^use model$/i.test(brut)) {
+    libelle = 'Sans socle';
+  } else {
+    const volant = /flying/i.test(brut);
+    const ovale = brut.match(/^(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*mm/i);
+    const rond = brut.match(/^(\d+(?:[.,]\d+)?)\s*mm/i);
+    if (ovale) libelle = `Socle ${volant ? 'volant' : 'ovale'} ${ovale[1]} x ${ovale[2]}mm`;
+    else if (rond) libelle = `Socle ${volant ? 'volant ' : ''}${rond[1]}mm`;
+    else libelle = `Socle ${brut}`;
+  }
+
+  const precision = String(note ?? '').trim();
+  return precision ? `${libelle} (${precision})` : libelle;
+}
+
 // une unite peut porter plusieurs lignes de profil, un sergent et sa troupe par
 // exemple : le nom n est affiche que s il y en a plus d une
 function bloc(doc, profile, nomme) {
+  const socle = libelleSocle(profile?.base, profile?.baseNote);
   const cases = STATS.map(([label, key]) =>
     el(
       doc,
@@ -40,7 +63,8 @@ function bloc(doc, profile, nomme) {
     'div',
     { class: 'wx-profile' },
     nomme && profile.name ? el(doc, 'h4', { class: 'wx-profile-name' }, profile.name) : null,
-    el(doc, 'div', { class: 'wx-stats' }, cases)
+    el(doc, 'div', { class: 'wx-stats' }, cases),
+    socle ? el(doc, 'p', { class: 'wx-base' }, socle) : null
   );
 }
 
