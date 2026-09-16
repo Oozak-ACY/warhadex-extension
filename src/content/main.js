@@ -3,6 +3,7 @@ import { detect } from './detect/index.js';
 import { createPanel } from './panel/panel.js';
 import { createLauncher } from './panel/launcher.js';
 import { injecterPolices } from './panel/fonts.js';
+import { LOGOS } from './panel/logos.js';
 import { observeUrlChanges } from './spa-observer.js';
 import { MSG, STATUS } from '../core/messages.js';
 import { getSettings } from '../core/settings.js';
@@ -167,7 +168,11 @@ export async function start() {
   injecterPolices(document, (chemin) => browser.runtime.getURL(chemin));
 
   panel = await createPanel({ doc: document, onSelect: ouvrirFiche, onSearch: chercherParNom });
-  launcher = createLauncher({ doc: document, onClick: () => panel.open() });
+  launcher = createLauncher({
+    doc: document,
+    onClick: () => panel.open(),
+    iconUrl: browser.runtime.getURL(LOGOS.lanceur)
+  });
 
   await analyser();
   observeUrlChanges(window, () => {

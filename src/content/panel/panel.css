@@ -64,6 +64,25 @@
   color: var(--wx-gueules);
 }
 
+.wx-brand {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin: 0 44px 8px 0;
+}
+
+.wx-brand-logo {
+  display: block;
+  height: 40px;
+  width: 40px;
+}
+
+.wx-brand-name {
+  color: var(--wx-gueules);
+  font: 600 18px/1 var(--wx-titre);
+  letter-spacing: 1px;
+}
+
 .wx-tabs {
   display: flex;
   gap: 12px;
@@ -343,6 +362,19 @@ details.wx-ability[open] > summary::before {
 
 .wx-search::placeholder {
   color: var(--wx-encre-2);
+}
+
+.wx-filigrane {
+  display: none;
+  height: auto;
+  margin: 40px auto 0;
+  opacity: 0.08;
+  pointer-events: none;
+  width: 160px;
+}
+
+.wx-home-list:empty + .wx-filigrane {
+  display: block;
 }
 
 .wx-home-message {

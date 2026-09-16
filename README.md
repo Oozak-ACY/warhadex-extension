@@ -337,6 +337,32 @@ jamais redefinir une police du site marchand. Si la politique de securite d'un
 site bloque leur chargement, le panneau retombe sur une police systeme a
 empattements.
 
+## Logo
+
+Les originaux du logo, en 1024 x 1024 avec fond transparent, sont dans
+`design/logo/`, hors de `src` : le build copie tout `src` dans l'extension et ces
+fichiers pesent pres de 200 Ko chacun. Les tailles utiles sont generees par :
+
+```bash
+python outils/generer-logos.py
+```
+
+Le script necessite Pillow. Il produit :
+
+| Fichier | Variante | Usage |
+|---|---|---|
+| `assets/icons/icon-16.png`, `icon-32.png` | tete verte | icone de barre d'outils |
+| `assets/icons/icon-48.png`, `icon-128.png` | buste vert | page des extensions, boutique |
+| `assets/logo/tete-vert-56.png` | tete verte | bouton flottant |
+| `assets/logo/buste-noir-128.png` | buste noir | en-tete du panneau et des options |
+| `assets/logo/buste-noir-320.png` | buste noir | filigrane de l'accueil du panneau |
+
+En dessous de 48 px le buste entier devient illisible : les petites icones sont
+recadrees sur la casquette et la tete. Les images du panneau sont servies par
+balise `img` depuis `web_accessible_resources`, car une `url()` dans la feuille
+injectee se resoudrait contre l'adresse du site marchand. La variante blanche,
+pour fond sombre, n'est pas encore utilisee.
+
 ## Confidentialite
 
 La cle d'API n'est jamais transmise a un script de contenu ni a une page web :

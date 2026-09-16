@@ -8,6 +8,7 @@ import { renderLore } from './render/lore.js';
 import { renderSource } from './render/source.js';
 import { renderState } from './render/states.js';
 import { createHome } from './render/home.js';
+import { LOGOS } from './logos.js';
 
 async function loadStyles(doc) {
   const style = doc.createElement('style');
@@ -27,11 +28,24 @@ export async function createPanel({ doc, onSelect, onSearch }) {
 
   const root = el(doc, 'div', { class: 'wx-root', 'data-open': 'false' });
   const close = el(doc, 'button', { class: 'wx-close', type: 'button', 'aria-label': 'Fermer' }, 'x');
+  const marque = el(
+    doc,
+    'div',
+    { class: 'wx-brand' },
+    el(doc, 'img', {
+      class: 'wx-brand-logo',
+      src: browser.runtime.getURL(LOGOS.marque),
+      alt: '',
+      width: 40,
+      height: 40
+    }),
+    el(doc, 'span', { class: 'wx-brand-name' }, 'Warhadex')
+  );
   const nav = el(doc, 'div', { class: 'wx-nav' });
   const tabs = el(doc, 'div', { class: 'wx-tabs', role: 'tablist' });
   const body = el(doc, 'div', { class: 'wx-body' });
 
-  root.append(close, nav, tabs, body);
+  root.append(close, marque, nav, tabs, body);
   shadow.append(await loadStyles(doc), root);
   doc.body.append(host);
 
@@ -45,7 +59,9 @@ export async function createPanel({ doc, onSelect, onSearch }) {
   close.addEventListener('click', closePanel);
   doc.addEventListener('keydown', onKeydown);
 
-  const home = onSearch ? createHome(doc, { onSelect, onSearch }) : null;
+  const home = onSearch
+    ? createHome(doc, { onSelect, onSearch, filigraneUrl: browser.runtime.getURL(LOGOS.filigrane) })
+    : null;
   // l accueil n existe que si une detection a eu lieu sur cette page
   let accueilPret = false;
 

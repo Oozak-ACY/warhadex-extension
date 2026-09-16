@@ -17,12 +17,19 @@ const STYLE = `
   padding: 10px 16px;
   box-shadow: 0 4px 12px rgba(42, 26, 20, 0.35);
 }
+.wx-launcher.wx-avec-logo {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  padding: 5px 14px 5px 6px;
+}
+.wx-launcher-logo { display: block; height: 28px; width: 28px; }
 .wx-launcher:hover { background: #7f1616; }
 .wx-launcher:focus-visible { outline: 2px solid #2a1a14; outline-offset: 2px; }
 .wx-launcher[hidden] { display: none; }
 `;
 
-export function createLauncher({ doc, onClick }) {
+export function createLauncher({ doc, onClick, iconUrl }) {
   const host = doc.createElement('div');
   const root = host.attachShadow({ mode: 'open' });
 
@@ -32,7 +39,16 @@ export function createLauncher({ doc, onClick }) {
   const button = doc.createElement('button');
   button.className = 'wx-launcher';
   button.type = 'button';
-  button.textContent = 'Voir les regles';
+  if (iconUrl) {
+    // decoratif : le libelle du bouton porte deja le sens
+    const logo = doc.createElement('img');
+    logo.className = 'wx-launcher-logo';
+    logo.src = iconUrl;
+    logo.alt = '';
+    button.classList.add('wx-avec-logo');
+    button.append(logo);
+  }
+  button.append(doc.createTextNode('Voir les regles'));
   button.hidden = true;
   button.addEventListener('click', onClick);
 

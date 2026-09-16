@@ -17,7 +17,14 @@ function ligne(doc, match, onSelect) {
 
 export function createHome(
   doc,
-  { onSelect, onSearch, minCaracteres = MIN_CARACTERES, maxResultats = MAX_RESULTATS, antiRebondMs = ANTI_REBOND_MS }
+  {
+    onSelect,
+    onSearch,
+    filigraneUrl,
+    minCaracteres = MIN_CARACTERES,
+    maxResultats = MAX_RESULTATS,
+    antiRebondMs = ANTI_REBOND_MS
+  }
 ) {
   const champ = el(doc, 'input', {
     class: 'wx-search',
@@ -29,7 +36,11 @@ export function createHome(
   });
   const message = el(doc, 'p', { class: 'wx-home-message' });
   const liste = el(doc, 'div', { class: 'wx-home-list' });
-  const node = el(doc, 'div', { class: 'wx-home' }, champ, message, liste);
+  // la CSS ne l affiche que tant que la liste est vide, pour habiller l accueil
+  const filigrane = filigraneUrl
+    ? el(doc, 'img', { class: 'wx-filigrane', src: filigraneUrl, alt: '', 'aria-hidden': 'true' })
+    : null;
+  const node = el(doc, 'div', { class: 'wx-home' }, champ, message, liste, filigrane);
 
   const fenetre = doc.defaultView;
   let timer = null;

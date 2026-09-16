@@ -336,3 +336,16 @@ test('clear coupe la recherche en vol et vide l accueil', async () => {
   panel.showCharacter({ id: 'b', name: 'Autre', profiles: [], weapons: [], abilities: [], keywords: [] });
   assert.equal(shadow.querySelector('.wx-back'), null, 'l accueil precedent ne survit pas a une navigation');
 });
+
+test('le panneau porte le logo et le nom Warhadex en en-tete', async () => {
+  const { shadow, panel } = await setup();
+  panel.showHome();
+  const marque = shadow.querySelector('.wx-root > .wx-brand');
+
+  assert.ok(marque, 'en-tete absent');
+  assert.equal(marque.textContent, 'Warhadex');
+  const logo = marque.querySelector('img');
+  assert.equal(logo.getAttribute('src'), 'stub://assets/logo/buste-noir-128.png');
+  assert.equal(logo.getAttribute('alt'), '');
+  assert.equal(shadow.querySelector('.wx-filigrane').getAttribute('src'), 'stub://assets/logo/buste-noir-320.png');
+});
