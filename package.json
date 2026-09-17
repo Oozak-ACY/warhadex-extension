@@ -7,9 +7,12 @@
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
     "build": "node build.mjs",
+    "lint:firefox": "npm run build && web-ext lint --source-dir dist/firefox",
+    "package:firefox": "npm run lint:firefox && web-ext build --source-dir dist/firefox --artifacts-dir dist/paquets --filename warhadex-firefox-{version}.zip --overwrite-dest",
     "mock": "node mock-api/server.mjs"
   },
   "devDependencies": {
-    "jsdom": "^25.0.1"
+    "jsdom": "^25.0.1",
+    "web-ext": "^10.6.0"
   }
 }

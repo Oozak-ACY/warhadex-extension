@@ -30,8 +30,9 @@ n'est necessaire pour developper l'extension (pas de bundler, pas de
 dependance runtime).
 
 Cote navigateur, l'extension vise Manifest V3 : Chrome 111 ou superieur,
-Firefox 116 ou superieur (valeur declaree en `strict_min_version` ; Manifest V3
-exige au minimum Firefox 109), Safari 16.4 ou superieur.
+Firefox 140 ou superieur, Safari 16.4 ou superieur. Le socle Firefox est celui
+qui lit la declaration de collecte de donnees exigee par Mozilla, voir
+[Publication Firefox](#publication-firefox).
 
 ## Structure du projet
 
@@ -363,13 +364,41 @@ balise `img` depuis `web_accessible_resources`, car une `url()` dans la feuille
 injectee se resoudrait contre l'adresse du site marchand. La variante blanche,
 pour fond sombre, n'est pas encore utilisee.
 
+## Publication Firefox
+
+L'extension est publiee sur addons.mozilla.org en mode non repertorie : Mozilla
+signe l'archive sans l'afficher dans la boutique, et le fichier `.xpi` signe se
+distribue directement.
+
+```bash
+npm run package:firefox
+```
+
+Cette commande refait le build, passe le linter de Mozilla sur `dist/firefox`
+puis produit `dist/paquets/warhadex-firefox-<version>.zip`. L'archive contient la
+cle d'API : elle ne doit etre deposee que sur addons.mozilla.org.
+
+Trois points du manifeste Firefox sont contraints par la publication :
+
+- l'identifiant `warhadex@orion-sphere.fr` est definitif des la premiere
+  soumission, le changer creerait une autre extension ;
+- `data_collection_permissions` declare `websiteContent`, car le nom de produit
+  lu sur la page est transmis a l'API. Mozilla l'exige des nouvelles extensions ;
+- `strict_min_version` vaut 140, premiere version qui lit cette declaration.
+
+Chaque nouvelle version impose d'incrementer `version` dans `package.json` et
+`src/manifest.json`. Les textes de la fiche et la politique de confidentialite
+sont dans [docs/publication-firefox.md](docs/publication-firefox.md).
+
 ## Confidentialite
 
 La cle d'API n'est jamais transmise a un script de contenu ni a une page web :
 seul le service worker l'emploie, dans l'en-tete `X-API-Key`. Le script de
-contenu n'emet aucune requete vers un hote distant, et seul le nom de produit
-normalise ainsi que le domaine d'origine sont envoyes a l'API. La cle fait
-partie de l'archive de l'extension et reste lisible par quiconque la decompresse.
+contenu n'emet aucune requete vers un hote distant. L'API ne recoit que le nom
+de produit normalise lu sur la page, le texte saisi dans la recherche manuelle
+et l'identifiant des fiches consultees : ni l'adresse de la page, ni son domaine,
+ni aucune donnee personnelle. La cle fait partie de l'archive de l'extension et
+reste lisible par quiconque la decompresse.
 
 Les reglages (duree du cache, affichage du lanceur) sont dans `storage.sync` et
 suivent donc votre profil. Le bouton "Vider le cache"

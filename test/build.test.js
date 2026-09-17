@@ -67,10 +67,22 @@ test('seule l API warhadex est joignable en plus des sites marchands', () => {
   assert.deepEqual(autres, ['https://warhadex-api.orion-sphere.fr/*']);
 });
 
-test('firefox declare un socle de version compatible manifest v3', () => {
-  const firefox = manifeste('firefox');
-  const min = Number(firefox.browser_specific_settings.gecko.strict_min_version.split('.')[0]);
-  assert.ok(min >= 109, `Manifest V3 exige Firefox 109 ou superieur, declare : ${min}`);
+// l identifiant est definitif des la premiere soumission sur addons.mozilla.org
+test('firefox garde l identifiant publie', () => {
+  assert.equal(manifeste('firefox').browser_specific_settings.gecko.id, 'warhadex@orion-sphere.fr');
+});
+
+// Mozilla impose la declaration de collecte aux nouvelles extensions. Elle n est
+// lue qu a partir de Firefox 140 : un socle plus bas installerait sans consentement
+test('firefox declare la transmission du nom de produit et le socle qui la lit', () => {
+  const reglages = manifeste('firefox').browser_specific_settings;
+  const majeure = (version) => Number(version.split('.')[0]);
+  const min = majeure(reglages.gecko.strict_min_version);
+  assert.ok(min >= 140, `la declaration de collecte exige Firefox 140, declare : ${min}`);
+  // Firefox pour Android ne la lit qu a partir de 142
+  const minAndroid = majeure(reglages.gecko_android.strict_min_version);
+  assert.ok(minAndroid >= 142, `Firefox pour Android exige 142, declare : ${minAndroid}`);
+  assert.deepEqual(reglages.gecko.data_collection_permissions, { required: ['websiteContent'] });
 });
 
 test('la cle est injectee dans le build et jamais dans src', async () => {
