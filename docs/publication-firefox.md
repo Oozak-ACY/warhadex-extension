@@ -94,4 +94,4 @@ A coller dans le champ « Privacy Policy » de la fiche.
 > le profil Firefox et suivent la synchronisation si elle est activee. Le cache
 > se vide depuis la page d'options de l'extension.
 >
-> Contact : a completer par l'auteur.
+> Contact : loan.kvl.dev@gmail.com
