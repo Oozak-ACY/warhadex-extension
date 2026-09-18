@@ -1,7 +1,9 @@
 # Publication sur addons.mozilla.org
 
-Textes et reponses a reporter dans le formulaire de soumission. Mode choisi :
-non repertorie (« On your own »).
+Mode choisi : non repertorie (« On your own »). Ce parcours ne demande que
+l'archive, les plateformes et la question du code source : il n'a aucun champ de
+fiche ni de politique de confidentialite. Les sections Fiche, Collecte de donnees
+et Politique de confidentialite ne servent qu'en cas de passage en publique.
 
 ## Soumission
 
@@ -31,7 +33,7 @@ peut etre explique ainsi dans les notes au relecteur :
 > static imports, and the URL is built from a constant path inside the
 > extension package, never from page data.
 
-## Fiche
+## Fiche (publication publique uniquement)
 
 **Nom** : Warhadex
 
@@ -70,7 +72,8 @@ Justification a donner si elle est demandee :
 
 ## Politique de confidentialite
 
-A coller dans le champ « Privacy Policy » de la fiche.
+A coller dans le champ « Privacy Policy » de la fiche, en publication publique
+uniquement.
 
 > **Politique de confidentialite de Warhadex**
 >
