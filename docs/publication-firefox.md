@@ -18,8 +18,13 @@ non repertorie (« On your own »).
 
 ## Avertissement attendu du linter
 
-`web-ext lint` signale `UNSAFE_VAR_ASSIGNMENT` sur `content/content.js`. Il est
-sans consequence et peut etre explique ainsi dans les notes au relecteur :
+`web-ext lint` et la validation d'addons.mozilla.org signalent
+`UNSAFE_VAR_ASSIGNMENT` (« Unsafe call to import for argument 0 ») sur
+`content/content.js`. C'est un avertissement, il ne bloque pas la signature, et
+il ne peut pas disparaitre sans bundler le code : l'adresse d'un module
+d'extension change avec chaque installation, elle ne peut donc pas etre ecrite
+en dur, et un bundle obligerait a fournir le code source a chaque soumission. Il
+peut etre explique ainsi dans les notes au relecteur :
 
 > content/content.js loads the extension's own ES module with
 > `import(api.runtime.getURL('content/main.js'))`. Content scripts cannot use
@@ -81,8 +86,8 @@ A coller dans le champ « Privacy Policy » de la fiche.
 >
 > Ni l'adresse de la page, ni le site visite, ni l'historique de navigation ne
 > sont transmis. Comme pour toute requete web, le serveur recoit l'adresse IP de
-> l'appareil. [A completer par l'auteur selon la configuration reelle du
-> serveur : duree de conservation des journaux et usage de l'adresse IP.]
+> l'appareil pour y repondre, mais il ne tient aucun journal et ne conserve
+> aucune donnee liee aux utilisateurs : ni adresse IP, ni recherche.
 >
 > Les fiches recues sont conservees localement dans le navigateur, sept jours
 > par defaut, pour eviter des requetes repetees. Les reglages sont stockes dans
