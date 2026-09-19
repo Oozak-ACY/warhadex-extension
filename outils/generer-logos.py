@@ -8,6 +8,8 @@ RACINE = Path(__file__).resolve().parent.parent
 ORIGINAUX = RACINE / 'design' / 'logo'
 ICONES = RACINE / 'src' / 'assets' / 'icons'
 LOGOS = RACINE / 'src' / 'assets' / 'logo'
+# exports pour les boutiques et reseaux, hors de l extension
+EXPORTS = RACINE / 'design' / 'logo' / 'export'
 
 # zones mesurees sur les originaux 1024 x 1024, identiques pour les trois variantes
 BUSTE = (150, 105, 849, 833)
@@ -52,6 +54,14 @@ def main():
     exporter(tete_verte, 56, 0, LOGOS / 'tete-vert-56.png')
     exporter(buste_noir, 128, 0, LOGOS / 'buste-noir-128.png')
     exporter(buste_noir, 320, 0, LOGOS / 'buste-noir-320.png')
+
+    # icone de fiche AMO et autres usages : carre, fond transparent ou blanc pour le JPG
+    EXPORTS.mkdir(parents=True, exist_ok=True)
+    for taille in (128, 512):
+        exporter(buste_vert, taille, taille // 16, EXPORTS / f'warhadex-{taille}.png')
+    fond = Image.new('RGB', (512, 512), (255, 255, 255))
+    fond.paste(Image.open(EXPORTS / 'warhadex-512.png'), mask=Image.open(EXPORTS / 'warhadex-512.png'))
+    fond.save(EXPORTS / 'warhadex-512.jpg', quality=92)
 
 
 if __name__ == '__main__':
