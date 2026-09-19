@@ -69,7 +69,7 @@ test('seule l API warhadex est joignable en plus des sites marchands', () => {
 
 // l identifiant est definitif des la premiere soumission sur addons.mozilla.org
 test('firefox garde l identifiant publie', () => {
-  assert.equal(manifeste('firefox').browser_specific_settings.gecko.id, 'warhadex@orion-sphere.fr');
+  assert.equal(manifeste('firefox').browser_specific_settings.gecko.id, 'extension-warhadex@orion-sphere.fr');
 });
 
 // Mozilla impose la declaration de collecte aux nouvelles extensions. Elle n est

@@ -366,9 +366,11 @@ pour fond sombre, n'est pas encore utilisee.
 
 ## Publication Firefox
 
-Les versions 1.0.0 et 1.0.1 ont ete signees en non repertorie : AMO reprend
-par defaut le mode de la version precedente. La publication publique passe par
-une version envoyee explicitement en « Sur ce site ».
+L'extension publique porte l'identifiant `extension-warhadex@orion-sphere.fr`.
+Une premiere extension, `warhadex@orion-sphere.fr` (AMO 3074568), a ete signee
+en non repertorie en 1.0.0 et 1.0.1 : AMO reprend le mode de la version
+precedente et n'a jamais propose de la rendre publique. Elle est laissee en
+l'etat, car supprimer une extension bloque definitivement son identifiant.
 
 ```bash
 npm run package:firefox
@@ -380,7 +382,7 @@ cle d'API : elle ne doit etre deposee que sur addons.mozilla.org.
 
 Trois points du manifeste Firefox sont contraints par la publication :
 
-- l'identifiant `warhadex@orion-sphere.fr` est definitif des la premiere
+- l'identifiant `extension-warhadex@orion-sphere.fr` est definitif des la premiere
   soumission, le changer creerait une autre extension ;
 - `data_collection_permissions` declare `websiteContent`, car le nom de produit
   lu sur la page est transmis a l'API. Mozilla l'exige des nouvelles extensions ;
