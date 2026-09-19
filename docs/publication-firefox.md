@@ -1,29 +1,25 @@
 # Publication sur addons.mozilla.org
 
-Historique : une premiere extension, `warhadex@orion-sphere.fr` (AMO 3074568),
-a ete signee en non repertorie (« On your own ») en 1.0.0 et 1.0.1. AMO reprend
-le mode de la version precedente pour chaque nouvelle version et n'a jamais
-propose de la passer en publique. L'extension publique est donc un nouveau
-module, `extension-warhadex@orion-sphere.fr`. L'ancien reste en l'etat : le
-supprimer bloquerait definitivement son identifiant.
+Historique : les versions 1.0.0 et 1.0.1 ont ete signees en non repertorie
+(« On your own »). AMO reprend par defaut le mode de la version precedente, et
+l'etape de distribution peut passer inapercue. La publication publique (« On
+this site ») passe par une nouvelle version, un numero de version ne servant
+qu'une fois par extension.
 
-**Le mode de distribution se choisit a la creation du module et se conserve
-ensuite.** Choisir « Sur ce site » des le premier depot.
-
-Pour savoir si une extension est publique sans se connecter, l'API
-`https://addons.mozilla.org/api/v5/addons/addon/<adresse>/` repond 200 pour une
+Pour savoir si une version est publique sans se connecter :
+`https://addons.mozilla.org/api/v5/addons/addon/warhadex/` repond 200 pour une
 extension publique et 401 sinon.
 
 Les textes destines a la boutique, plus bas, sont accentues : ils sont affiches
 aux utilisateurs, contrairement au code et a sa documentation.
 
-## Depot public
+## Nouvelle version publique
 
 1. Produire l'archive : `npm run package:firefox` donne
    `dist/paquets/warhadex-firefox-<version>.zip`.
-2. Sur https://addons.mozilla.org/developers/, choisir « Proposer un nouveau
-   module » (« Submit a New Add-on »).
-3. A l'etape de distribution, choisir **Sur ce site** (« On this site »).
+2. Sur https://addons.mozilla.org/developers/addon/3074568/versions, choisir
+   « Upload New Version » (« Soumettre une nouvelle version »).
+3. A l'etape de distribution, choisir **On this site** (« Sur ce site »).
 4. Deposer l'archive, puis cocher Firefox pour ordinateur.
 5. Code source : repondre **non**. Le code n'est ni minifie ni concatene ;
    seul `core/config.js` est reecrit au build, et il ne contient que la cle d'API.
