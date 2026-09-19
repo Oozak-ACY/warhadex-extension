@@ -66,6 +66,30 @@ Note a donner au relecteur :
 
 **Adresse de contact** : loan.kvl.dev@gmail.com
 
+## Captures d'écran
+
+Quatre captures en 1280 x 800 sont dans `design/captures/`, dans l'ordre de la
+fiche : fiche ouverte, tableau des armes, recherche par nom, bouton flottant.
+Elles montrent le vrai panneau, avec de vraies fiches de l'API, sur une page de
+boutique fictive et neutre qui n'imite aucun marchand reel.
+
+Légendes proposées :
+
+1. Le profil complet du personnage s'ouvre à côté de la page produit.
+2. Armes de tir et de mêlée, avec leurs caractéristiques et mots-clés.
+3. Une recherche par nom pour choisir la bonne fiche dans une boîte.
+4. Un bouton discret apparaît sur les pages produit reconnues.
+
+Pour les régénérer, par exemple après un changement de design :
+
+```bash
+npm run build
+node outils/generer-captures.mjs
+```
+
+Le script interroge la vraie API avec la clé du build et photographie les pages
+avec Edge en mode headless.
+
 ## Collecte de données
 
 Le formulaire reprend la déclaration du manifeste : **contenu de sites web**
