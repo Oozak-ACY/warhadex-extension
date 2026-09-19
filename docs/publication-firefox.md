@@ -1,22 +1,28 @@
 # Publication sur addons.mozilla.org
 
-Mode choisi : non repertorie (« On your own »). Ce parcours ne demande que
-l'archive, les plateformes et la question du code source : il n'a aucun champ de
-fiche ni de politique de confidentialite. Les sections Fiche, Collecte de donnees
-et Politique de confidentialite ne servent qu'en cas de passage en publique.
+Historique : la version 1.0.0 a ete signee en non repertorie (« On your own »).
+La publication publique (« On this site ») passe par une nouvelle version, un
+numero de version ne servant qu'une fois par extension.
 
-## Soumission
+Les textes destines a la boutique, plus bas, sont accentues : ils sont affiches
+aux utilisateurs, contrairement au code et a sa documentation.
 
-1. Se connecter sur https://addons.mozilla.org/developers/ avec un compte Mozilla.
-2. « Submit a New Add-on », choisir **On your own** (non repertorie).
-3. Deposer `dist/paquets/warhadex-firefox-1.0.0.zip` produit par
-   `npm run package:firefox`.
-4. Compatibilite : Firefox pour ordinateur uniquement.
-5. Code source : repondre **non**. Le code n'est ni minifie ni concatene ni
-   genere par un outil, a l'exception de `core/config.js` qui ne contient que la
-   cle d'API.
-6. Une fois signe, telecharger le `.xpi` depuis la page de la version et le
-   distribuer. Il s'installe par glisser-deposer dans Firefox.
+## Nouvelle version publique
+
+1. Produire l'archive : `npm run package:firefox` donne
+   `dist/paquets/warhadex-firefox-<version>.zip`.
+2. Sur https://addons.mozilla.org/developers/addon/3074568/versions, choisir
+   « Upload New Version » (« Soumettre une nouvelle version »).
+3. A l'etape de distribution, choisir **On this site** (« Sur ce site »).
+4. Deposer l'archive, puis cocher Firefox pour ordinateur.
+5. Code source : repondre **non**. Le code n'est ni minifie ni concatene ;
+   seul `core/config.js` est reecrit au build, et il ne contient que la cle d'API.
+6. Remplir la fiche avec les textes ci-dessous. Les captures d'ecran sont
+   facultatives mais fortement conseillees.
+7. Notes au relecteur : coller l'explication de l'avertissement du linter.
+
+Une version publique peut attendre une relecture humaine avant d'apparaitre
+dans les recherches.
 
 ## Avertissement attendu du linter
 
@@ -25,76 +31,76 @@ et Politique de confidentialite ne servent qu'en cas de passage en publique.
 `content/content.js`. C'est un avertissement, il ne bloque pas la signature, et
 il ne peut pas disparaitre sans bundler le code : l'adresse d'un module
 d'extension change avec chaque installation, elle ne peut donc pas etre ecrite
-en dur, et un bundle obligerait a fournir le code source a chaque soumission. Il
-peut etre explique ainsi dans les notes au relecteur :
+en dur, et un bundle obligerait a fournir le code source a chaque soumission.
+Note a donner au relecteur :
 
 > content/content.js loads the extension's own ES module with
 > `import(api.runtime.getURL('content/main.js'))`. Content scripts cannot use
 > static imports, and the URL is built from a constant path inside the
 > extension package, never from page data.
 
-## Fiche (publication publique uniquement)
+## Fiche
 
 **Nom** : Warhadex
 
-**Resume** (250 caracteres maximum) :
+**Résumé** (250 caractères maximum) :
 
-> Affiche les caracteristiques, armes et aptitudes Warhammer 40,000 du
+> Affiche les caractéristiques, armes et aptitudes Warhammer 40,000 du
 > personnage sur les pages produit des boutiques de figurines.
 
 **Description** :
 
-> Warhadex detecte le personnage presente sur une page produit et ouvre, d'un
-> clic, sa fiche de jeu Warhammer 40,000 (10e edition) : profils, sauvegarde
-> invulnerable, taille de socle, armes de tir et de melee, aptitudes et mots
-> cles.
+> Warhadex détecte le personnage présenté sur une page produit et ouvre, d'un
+> clic, sa fiche de jeu Warhammer 40,000 (10e édition) : profils, sauvegarde
+> invulnérable, taille de socle, armes de tir et de mêlée, aptitudes et mots-clés.
 >
 > Boutiques prises en charge : warhammer.com, Element Games, Wayland Games et
-> Philibert. Si la detection hesite, par exemple sur une boite contenant
-> plusieurs unites, une recherche par nom permet de choisir la bonne fiche.
+> Philibert. Si la détection hésite, par exemple sur une boîte contenant
+> plusieurs unités, une recherche par nom permet de choisir la bonne fiche.
 >
 > Warhadex est un outil de fan non officiel, sans lien avec Games Workshop.
 
-**Categorie** : Games & Entertainment
+**Catégorie** : Games & Entertainment (« Jeux et divertissement »)
 
-**Licence** : a choisir par l'auteur (« All Rights Reserved » par defaut).
+**Licence** : à choisir par l'auteur (« All Rights Reserved » par défaut).
 
-## Collecte de donnees
+**Adresse de contact** : loan.kvl.dev@gmail.com
 
-Le formulaire reprend la declaration du manifeste : **contenu de sites web**
+## Collecte de données
+
+Le formulaire reprend la déclaration du manifeste : **contenu de sites web**
 (`websiteContent`), requis.
 
-Justification a donner si elle est demandee :
+Justification à donner si elle est demandée :
 
-> Le nom du produit affiche sur la page est envoye a l'API Warhadex pour
+> Le nom du produit affiché sur la page est envoyé à l'API Warhadex pour
 > retrouver la fiche du personnage correspondant. Aucune adresse de page, aucun
-> historique et aucune donnee personnelle ne sont transmis.
+> historique et aucune donnée personnelle ne sont transmis.
 
-## Politique de confidentialite
+## Politique de confidentialité
 
-A coller dans le champ « Privacy Policy » de la fiche, en publication publique
-uniquement.
+À coller dans le champ « Politique de confidentialité » de la fiche.
 
-> **Politique de confidentialite de Warhadex**
+> **Politique de confidentialité de Warhadex**
 >
-> Warhadex ne collecte aucune donnee personnelle et n'utilise ni publicite, ni
+> Warhadex ne collecte aucune donnée personnelle et n'utilise ni publicité, ni
 > traceur, ni statistiques d'usage.
 >
-> Pour afficher une fiche, l'extension envoie a son serveur
+> Pour afficher une fiche, l'extension envoie à son serveur
 > (warhadex-api.orion-sphere.fr) uniquement :
 >
 > - le nom du produit lu sur la page produit d'une boutique prise en charge ;
 > - le texte saisi dans la recherche par nom du panneau ;
-> - l'identifiant de la fiche consultee.
+> - l'identifiant de la fiche consultée.
 >
-> Ni l'adresse de la page, ni le site visite, ni l'historique de navigation ne
-> sont transmis. Comme pour toute requete web, le serveur recoit l'adresse IP de
-> l'appareil pour y repondre, mais il ne tient aucun journal et ne conserve
-> aucune donnee liee aux utilisateurs : ni adresse IP, ni recherche.
+> Ni l'adresse de la page, ni le site visité, ni l'historique de navigation ne
+> sont transmis. Comme pour toute requête web, le serveur reçoit l'adresse IP de
+> l'appareil pour y répondre, mais il ne tient aucun journal et ne conserve
+> aucune donnée liée aux utilisateurs : ni adresse IP, ni recherche.
 >
-> Les fiches recues sont conservees localement dans le navigateur, sept jours
-> par defaut, pour eviter des requetes repetees. Les reglages sont stockes dans
-> le profil Firefox et suivent la synchronisation si elle est activee. Le cache
+> Les fiches reçues sont conservées localement dans le navigateur, sept jours
+> par défaut, pour éviter des requêtes répétées. Les réglages sont stockés dans
+> le profil Firefox et suivent la synchronisation si elle est activée. Le cache
 > se vide depuis la page d'options de l'extension.
 >
 > Contact : loan.kvl.dev@gmail.com

@@ -366,9 +366,8 @@ pour fond sombre, n'est pas encore utilisee.
 
 ## Publication Firefox
 
-L'extension est publiee sur addons.mozilla.org en mode non repertorie : Mozilla
-signe l'archive sans l'afficher dans la boutique, et le fichier `.xpi` signe se
-distribue directement.
+L'extension est publiee sur addons.mozilla.org en mode public, a partir de la
+version 1.0.1. La version 1.0.0 avait ete signee en non repertorie.
 
 ```bash
 npm run package:firefox
