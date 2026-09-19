@@ -1,8 +1,14 @@
 # Publication sur addons.mozilla.org
 
-Historique : la version 1.0.0 a ete signee en non repertorie (« On your own »).
-La publication publique (« On this site ») passe par une nouvelle version, un
-numero de version ne servant qu'une fois par extension.
+Historique : les versions 1.0.0 et 1.0.1 ont ete signees en non repertorie
+(« On your own »). AMO reprend par defaut le mode de la version precedente, et
+l'etape de distribution peut passer inapercue. La publication publique (« On
+this site ») passe par une nouvelle version, un numero de version ne servant
+qu'une fois par extension.
+
+Pour savoir si une version est publique sans se connecter :
+`https://addons.mozilla.org/api/v5/addons/addon/warhadex/` repond 200 pour une
+extension publique et 401 sinon.
 
 Les textes destines a la boutique, plus bas, sont accentues : ils sont affiches
 aux utilisateurs, contrairement au code et a sa documentation.

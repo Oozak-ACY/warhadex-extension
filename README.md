@@ -366,8 +366,9 @@ pour fond sombre, n'est pas encore utilisee.
 
 ## Publication Firefox
 
-L'extension est publiee sur addons.mozilla.org en mode public, a partir de la
-version 1.0.1. La version 1.0.0 avait ete signee en non repertorie.
+Les versions 1.0.0 et 1.0.1 ont ete signees en non repertorie : AMO reprend
+par defaut le mode de la version precedente. La publication publique passe par
+une version envoyee explicitement en « Sur ce site ».
 
 ```bash
 npm run package:firefox

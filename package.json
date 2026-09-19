@@ -1,6 +1,6 @@
 {
   "name": "warhadex",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Extension multi-navigateur affichant les regles Warhammer 40000 sur les pages produit",
