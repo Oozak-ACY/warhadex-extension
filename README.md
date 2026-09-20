@@ -21,6 +21,8 @@ dependance runtime.
 - [Verification manuelle en navigateur (a faire)](#verification-manuelle-en-navigateur-a-faire)
 - [Copyright et responsabilite du contenu](#copyright-et-responsabilite-du-contenu)
 - [Polices](#polices)
+- [Publication Firefox](#publication-firefox)
+- [Publication Chrome](#publication-chrome)
 - [Confidentialite](#confidentialite)
 
 ## Prerequis
@@ -389,6 +391,19 @@ Trois points du manifeste Firefox sont contraints par la publication :
 Chaque nouvelle version impose d'incrementer `version` dans `package.json` et
 `src/manifest.json`. Les textes de la fiche et la politique de confidentialite
 sont dans [docs/publication-firefox.md](docs/publication-firefox.md).
+
+## Publication Chrome
+
+```bash
+npm run package:chrome
+```
+
+Produit `dist/paquets/warhadex-chrome-<version>.zip`, a deposer sur la console
+developpeur Chrome. Le magasin sert aussi Edge, Brave, Opera et Vivaldi.
+Contrairement a Firefox, Chrome exige une adresse publique de politique de
+confidentialite. Les etapes, les textes de fiche et les justifications
+d'autorisations sont dans
+[docs/publication-chrome.md](docs/publication-chrome.md).
 
 ## Confidentialite
 
