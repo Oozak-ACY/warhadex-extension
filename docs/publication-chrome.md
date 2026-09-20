@@ -63,17 +63,24 @@ utilisateurs, contrairement au code et a sa documentation.
 > du bouton) et un cache des fiches déjà consultées, afin d'éviter de répéter
 > les mêmes requêtes.
 
-**Justification des sites marchands** (`warhammer.com`, `elementgames.co.uk`,
-`waylandgames.co.uk`, `philibertnet.com`) :
+**Justification de l'autorisation d'acces a l'hote** : un seul champ couvre
+tous les domaines, ceux de `permissions` comme ceux de `content_scripts`, en
+1000 caracteres maximum.
 
-> L'extension lit le nom du produit affiché sur ces boutiques pour identifier la
-> figurine, et y insère le panneau de règles. Elle ne s'active que sur ces
-> quatre sites.
-
-**Justification de `warhadex-api.orion-sphere.fr`** :
-
-> Seule source des règles affichées. L'extension n'embarque aucune base de
-> données de jeu et interroge cette API pour chaque fiche.
+> L'extension n'accède qu'à cinq domaines, tous nécessaires à sa fonction
+> unique.
+>
+> Les quatre boutiques de figurines (warhammer.com, elementgames.co.uk,
+> waylandgames.co.uk, philibertnet.com) : le script de contenu y lit le titre du
+> produit affiché pour identifier la figurine présentée, et insère dans la page
+> le panneau montrant ses règles de jeu. Sans cet accès, l'extension ne peut ni
+> reconnaître le personnage ni afficher son panneau. Elle ne s'active sur aucun
+> autre site.
+>
+> warhadex-api.orion-sphere.fr : seule source des règles affichées. L'extension
+> n'embarque aucune base de données de jeu ; le service worker envoie à cette
+> API le nom du produit pour récupérer la fiche correspondante. Aucune donnée
+> personnelle, adresse de page ni historique de navigation n'est transmis.
 
 **Code distant** : repondre **non**. Tout le code est dans l'archive ; seules
 des donnees JSON sont recuperees.
