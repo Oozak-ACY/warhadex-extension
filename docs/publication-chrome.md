@@ -95,6 +95,21 @@ employees pour evaluer une solvabilite ou accorder un pret.
 
 ## Politique de confidentialite a mettre en ligne
 
-Le texte est le meme que pour Firefox, section « Politique de confidentialite »
-de [publication-firefox.md](publication-firefox.md). Il doit etre servi a une
-adresse publique et stable, indiquee dans l'onglet Confidentialite.
+La page est prete dans `site/confidentialite.html` : un seul fichier, sans
+dependance externe. Elle doit etre servie a une adresse publique et stable,
+indiquee dans l'onglet Confidentialite, par exemple
+`https://warhadex-api.orion-sphere.fr/confidentialite`.
+
+Avec FastAPI, une route suffit :
+
+```python
+from fastapi.responses import FileResponse
+
+@app.get('/confidentialite', include_in_schema=False)
+def confidentialite():
+    return FileResponse('static/confidentialite.html')
+```
+
+Cette page n'a pas besoin de cle d'API : elle doit rester accessible sans
+authentification, sinon la relecture Chrome echoue. Son contenu doit rester
+identique a la politique donnee a Mozilla.
