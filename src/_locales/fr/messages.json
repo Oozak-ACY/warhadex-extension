@@ -1,0 +1,89 @@
+{
+  "extDescription": {
+    "message": "Affiche les caractéristiques, armes et aptitudes de jeu d'une figurine sur les pages produit des boutiques de jeux de figurines."
+  },
+  "launcherLabel": { "message": "Voir les règles" },
+
+  "panelClose": { "message": "Fermer" },
+  "panelBack": { "message": "Retour à la recherche" },
+  "tabRules": { "message": "Règles" },
+  "tabLore": { "message": "Histoire" },
+
+  "searchPlaceholder": { "message": "Chercher un personnage" },
+  "searchPending": { "message": "Recherche en cours" },
+  "searchFailed": { "message": "Recherche impossible" },
+  "searchNoResult": { "message": "Aucun personnage à ce nom" },
+  "searchFirstResults": {
+    "message": "$COUNT$ premiers résultats",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "searchMinChars": {
+    "message": "Au moins $COUNT$ caractères",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "stateNotFound": { "message": "Aucun personnage trouvé pour le moment" },
+  "stateNotConfigured": { "message": "Accès à l'API Warhadex refusé" },
+  "stateOffline": { "message": "L'API Warhadex est injoignable" },
+  "stateAmbiguous": { "message": "Plusieurs personnages correspondent" },
+  "stateError": { "message": "Une erreur est survenue lors de la récupération de la fiche" },
+
+  "invulnerableSave": {
+    "message": "Sauvegarde invulnérable $VALUE$",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "pointsModel": {
+    "message": "$COUNT$ figurine",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "pointsModels": {
+    "message": "$COUNT$ figurines",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "baseNone": { "message": "Sans socle" },
+  "baseRound": {
+    "message": "Socle $SIZE$mm",
+    "placeholders": { "size": { "content": "$1" } }
+  },
+  "baseRoundFlying": {
+    "message": "Socle volant $SIZE$mm",
+    "placeholders": { "size": { "content": "$1" } }
+  },
+  "baseOval": {
+    "message": "Socle ovale $LENGTH$ x $WIDTH$mm",
+    "placeholders": { "length": { "content": "$1" }, "width": { "content": "$2" } }
+  },
+  "baseOvalFlying": {
+    "message": "Socle volant $LENGTH$ x $WIDTH$mm",
+    "placeholders": { "length": { "content": "$1" }, "width": { "content": "$2" } }
+  },
+  "baseOther": {
+    "message": "Socle $BASE$",
+    "placeholders": { "base": { "content": "$1" } }
+  },
+
+  "weaponsRanged": { "message": "Armes de tir" },
+  "weaponsMelee": { "message": "Armes de mêlée" },
+  "columnWeapon": { "message": "Arme" },
+  "columnRange": { "message": "Portée" },
+  "columnAttacks": { "message": "A" },
+  "columnSkill": { "message": "CT/CC" },
+  "columnStrength": { "message": "F" },
+  "columnPenetration": { "message": "PA" },
+  "columnDamage": { "message": "D" },
+  "columnKeywords": { "message": "Mots-clés" },
+
+  "abilitiesTitle": { "message": "Aptitudes" },
+  "keywordsTitle": { "message": "Mots-clés" },
+  "loreTitle": { "message": "Histoire" },
+  "booksTitle": { "message": "Livres" },
+  "sourceLabel": { "message": "Source :" },
+
+  "optionsTitle": { "message": "Options Warhadex" },
+  "optionsCacheDays": { "message": "Durée du cache en jours" },
+  "optionsShowLauncher": { "message": "Activer Warhadex sur les pages produit" },
+  "optionsSave": { "message": "Enregistrer" },
+  "optionsClearCache": { "message": "Vider le cache" },
+  "optionsSaved": { "message": "Réglages enregistrés" },
+  "optionsCacheCleared": { "message": "Cache vidé" }
+}

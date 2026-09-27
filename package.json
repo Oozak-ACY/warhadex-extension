@@ -1,9 +1,9 @@
 {
   "name": "warhadex",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
-  "description": "Extension multi-navigateur affichant les regles Warhammer 40000 sur les pages produit",
+  "description": "Extension multi-navigateur affichant les regles de jeu des figurines sur les pages produit",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
     "build": "node build.mjs",

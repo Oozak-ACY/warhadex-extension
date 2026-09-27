@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { MSG } from '../src/core/messages.js';
+import { installerI18n } from './helpers/i18n.js';
+
+installerI18n();
 
 // Same module-caching constraint as main-smoke.test.js: vendor/browser.js binds
 // globalThis.browser once at first import, for the whole process running this file.
@@ -134,7 +137,7 @@ test('soumission enregistre les reglages sans cle ni permission', async () => {
   assert.deepEqual(setCalls, [{ cacheTtlDays: 21, showLauncher: true }]);
   assert.deepEqual(localSetCalls, [], 'plus rien ne doit etre ecrit dans storage.local');
   assert.deepEqual(permissionCalls, [], 'plus aucune demande de permission');
-  assert.equal(etat.textContent, 'Reglages enregistres');
+  assert.equal(etat.textContent, 'Settings saved');
   assert.equal(etat.dataset.erreur, 'false');
 });
 
@@ -145,5 +148,5 @@ test('vider le cache envoie CLEAR_CACHE et affiche la confirmation', async () =>
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.deepEqual(sentMessages, [{ type: MSG.CLEAR_CACHE }]);
-  assert.equal(etat.textContent, 'Cache vide');
+  assert.equal(etat.textContent, 'Cache cleared');
 });

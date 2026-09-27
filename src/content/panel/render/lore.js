@@ -1,5 +1,6 @@
 import { el } from './el.js';
 import { isSafeUrl } from './url.js';
+import { t } from '../../../core/i18n.js';
 
 function livre(doc, book) {
   const detail = [book.author, book.year].filter(Boolean).join(', ');
@@ -17,9 +18,9 @@ export function renderLore(doc, character) {
     doc,
     'section',
     { class: 'wx-lore' },
-    character.lore ? el(doc, 'h3', {}, 'Histoire') : null,
+    character.lore ? el(doc, 'h3', {}, t('loreTitle')) : null,
     character.lore ? el(doc, 'p', {}, character.lore) : null,
-    books.length ? el(doc, 'h3', {}, 'Livres') : null,
+    books.length ? el(doc, 'h3', {}, t('booksTitle')) : null,
     books.length ? el(doc, 'ul', { class: 'wx-books' }, books.map((book) => livre(doc, book))) : null
   );
 }

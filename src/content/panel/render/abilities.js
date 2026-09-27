@@ -1,4 +1,5 @@
 import { el } from './el.js';
+import { t } from '../../../core/i18n.js';
 
 // Wahapedia liste les aptitudes de faction et de coeur en nom seul sur la fiche,
 // et renvoie leur texte aux regles de faction. Leur texte est ici utile mais
@@ -40,9 +41,9 @@ export function renderAbilities(doc, character) {
     doc,
     'section',
     { class: 'wx-abilities' },
-    abilities.length ? el(doc, 'h3', {}, 'Aptitudes') : null,
+    abilities.length ? el(doc, 'h3', {}, t('abilitiesTitle')) : null,
     abilities.map((ability) => aptitude(doc, ability)),
-    keywords.length ? el(doc, 'h3', {}, 'Mots cles') : null,
+    keywords.length ? el(doc, 'h3', {}, t('keywordsTitle')) : null,
     keywords.length
       ? el(doc, 'ul', { class: 'wx-keywords' }, keywords.map((keyword) => el(doc, 'li', {}, keyword)))
       : null

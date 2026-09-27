@@ -1,4 +1,6 @@
 import { el } from './el.js';
+import { renderCredit } from './credit.js';
+import { t } from '../../../core/i18n.js';
 
 export const MIN_CARACTERES = 4;
 export const MAX_RESULTATS = 5;
@@ -29,8 +31,8 @@ export function createHome(
   const champ = el(doc, 'input', {
     class: 'wx-search',
     type: 'search',
-    placeholder: 'Chercher un personnage',
-    'aria-label': 'Chercher un personnage',
+    placeholder: t('searchPlaceholder'),
+    'aria-label': t('searchPlaceholder'),
     autocomplete: 'off',
     spellcheck: 'false'
   });
@@ -40,7 +42,7 @@ export function createHome(
   const filigrane = filigraneUrl
     ? el(doc, 'img', { class: 'wx-filigrane', src: filigraneUrl, alt: '', 'aria-hidden': 'true' })
     : null;
-  const node = el(doc, 'div', { class: 'wx-home' }, champ, message, liste, filigrane);
+  const node = el(doc, 'div', { class: 'wx-home' }, champ, message, liste, filigrane, renderCredit(doc));
 
   const fenetre = doc.defaultView;
   let timer = null;
@@ -59,21 +61,21 @@ export function createHome(
 
   async function chercher(requete) {
     const jeton = (sequence += 1);
-    setMessage('Recherche en cours');
+    setMessage(t('searchPending'));
 
     let resultats;
     try {
       resultats = await onSearch(requete);
     } catch {
-      if (jeton === sequence) setMessage('Recherche impossible');
+      if (jeton === sequence) setMessage(t('searchFailed'));
       return;
     }
 
     if (jeton !== sequence) return;
 
     setMatches(resultats);
-    if (!resultats?.length) setMessage('Aucun personnage a ce nom');
-    else if (resultats.length > maxResultats) setMessage(`${maxResultats} premiers resultats`);
+    if (!resultats?.length) setMessage(t('searchNoResult'));
+    else if (resultats.length > maxResultats) setMessage(t('searchFirstResults', maxResultats));
     else setMessage('');
   }
 
@@ -85,7 +87,7 @@ export function createHome(
       // toute frappe invalide la reponse en vol
       sequence += 1;
       setMatches([]);
-      setMessage(requete ? `Au moins ${minCaracteres} caracteres` : '');
+      setMessage(requete ? t('searchMinChars', minCaracteres) : '');
       return;
     }
 

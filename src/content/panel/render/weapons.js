@@ -1,6 +1,17 @@
 import { el } from './el.js';
+import { t } from '../../../core/i18n.js';
 
-const COLONNES = ['Arme', 'Portee', 'A', 'CT/CC', 'F', 'PA', 'D', 'Mots cles'];
+// cles de _locales, resolues au rendu
+const COLONNES = [
+  'columnWeapon',
+  'columnRange',
+  'columnAttacks',
+  'columnSkill',
+  'columnStrength',
+  'columnPenetration',
+  'columnDamage',
+  'columnKeywords'
+];
 
 function ligne(doc, weapon) {
   const valeurs = [
@@ -27,7 +38,7 @@ function tableau(doc, titre, armes) {
       doc,
       'table',
       { class: 'wx-table' },
-      el(doc, 'thead', {}, el(doc, 'tr', {}, COLONNES.map((c) => el(doc, 'th', {}, c)))),
+      el(doc, 'thead', {}, el(doc, 'tr', {}, COLONNES.map((c) => el(doc, 'th', {}, t(c))))),
       el(doc, 'tbody', {}, armes.map((arme) => ligne(doc, arme)))
     )
   );
@@ -39,6 +50,6 @@ export function renderWeapons(doc, weapons) {
   const tir = weapons.filter((weapon) => weapon.type === 'ranged');
   const melee = weapons.filter((weapon) => weapon.type !== 'ranged');
 
-  const groupes = [tableau(doc, 'Armes de tir', tir), tableau(doc, 'Armes de melee', melee)].filter(Boolean);
+  const groupes = [tableau(doc, t('weaponsRanged'), tir), tableau(doc, t('weaponsMelee'), melee)].filter(Boolean);
   return groupes.length ? el(doc, 'section', { class: 'wx-weapons' }, groupes) : null;
 }

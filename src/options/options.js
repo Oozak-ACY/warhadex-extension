@@ -1,6 +1,13 @@
 import browser from '../vendor/browser.js';
 import { getSettings, setSettings } from '../core/settings.js';
 import { MSG } from '../core/messages.js';
+import { t, langue } from '../core/i18n.js';
+
+// le HTML porte l anglais par defaut, remplace ici par la langue du navigateur
+document.documentElement.lang = langue();
+for (const noeud of document.querySelectorAll('[data-i18n]')) {
+  noeud.textContent = t(noeud.dataset.i18n);
+}
 
 const form = document.querySelector('#reglages');
 const etat = document.querySelector('#etat');
@@ -25,12 +32,12 @@ form.addEventListener('submit', async (event) => {
     showLauncher: form.showLauncher.checked
   });
 
-  afficher('Reglages enregistres');
+  afficher(t('optionsSaved'));
 });
 
 document.querySelector('#vider').addEventListener('click', async () => {
   await browser.runtime.sendMessage({ type: MSG.CLEAR_CACHE });
-  afficher('Cache vide');
+  afficher(t('optionsCacheCleared'));
 });
 
 await charger();

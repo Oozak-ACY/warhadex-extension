@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Options Warhadex</title>
+  <title data-i18n="optionsTitle">Warhadex options</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
@@ -10,17 +10,17 @@
     <h1><img src="../assets/logo/buste-noir-128.png" alt="" width="56" height="56">Warhadex</h1>
 
     <form id="reglages">
-      <label for="cacheTtlDays">Duree du cache en jours</label>
+      <label for="cacheTtlDays" data-i18n="optionsCacheDays">Cache duration in days</label>
       <input id="cacheTtlDays" name="cacheTtlDays" type="number" min="1" max="90" value="7">
 
       <label class="case">
         <input id="showLauncher" name="showLauncher" type="checkbox" checked>
-        Activer Warhadex sur les pages produit
+        <span data-i18n="optionsShowLauncher">Enable Warhadex on product pages</span>
       </label>
 
       <div class="actions">
-        <button type="submit">Enregistrer</button>
-        <button type="button" id="vider">Vider le cache</button>
+        <button type="submit" data-i18n="optionsSave">Save</button>
+        <button type="button" id="vider" data-i18n="optionsClearCache">Clear cache</button>
       </div>
     </form>
 

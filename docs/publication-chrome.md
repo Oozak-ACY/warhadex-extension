@@ -32,15 +32,24 @@ utilisateurs, contrairement au code et a sa documentation.
 
 **Nom** : Warhadex
 
-**Description courte** (132 caracteres maximum, reprise du manifeste) :
+**Description courte** (132 caracteres maximum) : lue par le magasin dans
+`_locales/<langue>/messages.json` (cle `extDescription`), il n'y a rien a
+saisir. Anglais :
 
-> Affiche les caractéristiques, armes et aptitudes Warhammer 40,000 du
-> personnage sur les pages produit des boutiques de figurines.
+> Shows the game stats, weapons and abilities of a miniature right on the
+> product pages of tabletop miniature stores.
 
-**Description** : identique a la fiche Firefox, voir
+Francais :
+
+> Affiche les caractéristiques, armes et aptitudes de jeu d'une figurine sur
+> les pages produit des boutiques de jeux de figurines.
+
+**Description** : identique a la fiche Firefox, en anglais et en francais, voir
 [publication-firefox.md](publication-firefox.md).
 
-**Categorie** : Divertissement. **Langue** : francais.
+**Categorie** : Divertissement. **Langues** : anglais (par defaut, deduit de
+`default_locale`) et francais. Dans l'onglet Fiche, choisir la langue dans le
+selecteur en haut pour saisir la description et les captures de chacune.
 
 **Images** :
 
@@ -54,33 +63,34 @@ utilisateurs, contrairement au code et a sa documentation.
 
 **Usage unique** :
 
-> Afficher les règles et caractéristiques de jeu Warhammer 40,000 de la
-> figurine présentée sur une page produit de boutique.
+> Show the game rules and stats of the miniature displayed on a tabletop
+> miniature store's product page.
+
+Ces champs sont lus par les relecteurs du magasin : ils sont rediges en
+anglais.
 
 **Justification de `storage`** :
 
-> Conserve localement les réglages de l'utilisateur (durée du cache, affichage
-> du bouton) et un cache des fiches déjà consultées, afin d'éviter de répéter
-> les mêmes requêtes.
+> Stores the user's settings locally (cache duration, launcher button display)
+> and a cache of datasheets already viewed, to avoid repeating the same
+> requests.
 
 **Justification de l'autorisation d'acces a l'hote** : un seul champ couvre
 tous les domaines, ceux de `permissions` comme ceux de `content_scripts`, en
 1000 caracteres maximum.
 
-> L'extension n'accède qu'à cinq domaines, tous nécessaires à sa fonction
-> unique.
+> The extension only accesses five domains, all required by its single purpose.
 >
-> Les quatre boutiques de figurines (warhammer.com, elementgames.co.uk,
-> waylandgames.co.uk, philibertnet.com) : le script de contenu y lit le titre du
-> produit affiché pour identifier la figurine présentée, et insère dans la page
-> le panneau montrant ses règles de jeu. Sans cet accès, l'extension ne peut ni
-> reconnaître le personnage ni afficher son panneau. Elle ne s'active sur aucun
-> autre site.
+> The four miniature stores (warhammer.com, elementgames.co.uk,
+> waylandgames.co.uk, philibertnet.com): the content script reads the title of
+> the displayed product to identify the miniature, and inserts into the page the
+> panel showing its game rules. Without this access, the extension can neither
+> recognise the character nor show its panel. It never runs on any other site.
 >
-> warhadex-api.orion-sphere.fr : seule source des règles affichées. L'extension
-> n'embarque aucune base de données de jeu ; le service worker envoie à cette
-> API le nom du produit pour récupérer la fiche correspondante. Aucune donnée
-> personnelle, adresse de page ni historique de navigation n'est transmis.
+> warhadex-api.orion-sphere.fr: the only source of the rules shown. The
+> extension bundles no game database; the service worker sends the product name
+> to this API to fetch the matching datasheet. No personal data, page address or
+> browsing history is sent.
 
 **Code distant** : repondre **non**. Tout le code est dans l'archive ; seules
 des donnees JSON sont recuperees.
@@ -93,23 +103,14 @@ localisation.
 ni vendues, ni transferees a des tiers, ni utilisees hors de l'usage unique, ni
 employees pour evaluer une solvabilite ou accorder un pret.
 
-## Politique de confidentialite a mettre en ligne
+## Politique de confidentialite en ligne
 
-La page est prete dans `site/confidentialite.html` : un seul fichier, sans
-dependance externe. Elle doit etre servie a une adresse publique et stable,
-indiquee dans l'onglet Confidentialite, par exemple
-`https://warhadex-api.orion-sphere.fr/confidentialite`.
+La page source est `site/confidentialite.html` (anglais puis francais). Elle est
+publiee par GitHub Pages depuis le depot `oozak-acy/warhadex-site` a l'adresse :
 
-Avec FastAPI, une route suffit :
+https://oozak-acy.github.io/warhadex-site/confidentialite.html
 
-```python
-from fastapi.responses import FileResponse
-
-@app.get('/confidentialite', include_in_schema=False)
-def confidentialite():
-    return FileResponse('static/confidentialite.html')
-```
-
-Cette page n'a pas besoin de cle d'API : elle doit rester accessible sans
-authentification, sinon la relecture Chrome echoue. Son contenu doit rester
-identique a la politique donnee a Mozilla.
+C'est cette adresse qui est indiquee sur AMO et dans l'onglet Confidentialite du
+Chrome Web Store. Apres toute modification de `site/confidentialite.html`,
+copier le fichier dans `warhadex-site` et pousser sur `main` : l'adresse ne
+change pas. Son contenu doit rester identique a la politique donnee a Mozilla.

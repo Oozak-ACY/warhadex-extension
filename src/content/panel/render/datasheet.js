@@ -1,4 +1,5 @@
 import { el } from './el.js';
+import { t } from '../../../core/i18n.js';
 
 const STATS = [
   ['M', 'm'],
@@ -12,7 +13,7 @@ const STATS = [
 function palier(entry) {
   const cout = `${entry.cost} pts`;
   if (typeof entry.models === 'number') {
-    return `${entry.models} figurine${entry.models > 1 ? 's' : ''} ${cout}`;
+    return `${t(entry.models > 1 ? 'pointsModels' : 'pointsModel', entry.models)} ${cout}`;
   }
   return entry.label ? `${entry.label} ${cout}` : cout;
 }
@@ -30,14 +31,14 @@ export function libelleSocle(base, note) {
 
   let libelle;
   if (/^use model$/i.test(brut)) {
-    libelle = 'Sans socle';
+    libelle = t('baseNone');
   } else {
     const volant = /flying/i.test(brut);
     const ovale = brut.match(/^(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*mm/i);
     const rond = brut.match(/^(\d+(?:[.,]\d+)?)\s*mm/i);
-    if (ovale) libelle = `Socle ${volant ? 'volant' : 'ovale'} ${ovale[1]} x ${ovale[2]}mm`;
-    else if (rond) libelle = `Socle ${volant ? 'volant ' : ''}${rond[1]}mm`;
-    else libelle = `Socle ${brut}`;
+    if (ovale) libelle = t(volant ? 'baseOvalFlying' : 'baseOval', ovale[1], ovale[2]);
+    else if (rond) libelle = t(volant ? 'baseRoundFlying' : 'baseRound', rond[1]);
+    else libelle = t('baseOther', brut);
   }
 
   const precision = String(note ?? '').trim();
@@ -85,7 +86,7 @@ export function renderDatasheet(doc, character) {
     ),
     profiles.map((profile) => bloc(doc, profile, nomme)),
     character.invulnerable
-      ? el(doc, 'p', { class: 'wx-invul' }, `Sauvegarde invulnerable ${character.invulnerable}`)
+      ? el(doc, 'p', { class: 'wx-invul' }, t('invulnerableSave', character.invulnerable))
       : null,
     points(doc, character.points)
   );

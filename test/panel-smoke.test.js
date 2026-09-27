@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { STATUS } from '../src/core/messages.js';
+import { installerI18n } from './helpers/i18n.js';
+
+installerI18n();
 
 // panel.js loads its CSS via `browser.runtime.getURL` + `fetch`, both stubbed here
 // since jsdom is not a real extension context
@@ -98,7 +101,7 @@ test('showCharacter cree un onglet Histoire et bascule la vue au clic', async ()
   panel.showCharacter(character);
 
   const tabs = [...shadow.querySelectorAll('.wx-tab')];
-  assert.deepEqual(tabs.map((t) => t.textContent), ['Regles', 'Histoire']);
+  assert.deepEqual(tabs.map((t) => t.textContent), ['Rules', 'Lore']);
   assert.equal(tabs[0].getAttribute('aria-selected'), 'true');
   assert.ok(shadow.querySelector('.wx-datasheet'));
 
@@ -118,7 +121,8 @@ test('showCharacter affiche la source en pied de l onglet Regles', async () => {
 
   const pied = shadow.querySelector('.wx-source');
   assert.ok(pied, 'la source doit etre rendue dans l onglet Regles');
-  assert.equal(pied.querySelector('a').getAttribute('href'), 'https://example.com/codex');
+  assert.equal(pied.querySelector('.wx-source-line a').getAttribute('href'), 'https://example.com/codex');
+  assert.match(pied.querySelector('.wx-credit').textContent, /Powered by Wahapedia/);
 });
 
 test('showMatches sans faction n affiche pas de separateur orphelin', async () => {
@@ -158,6 +162,7 @@ test('la feuille de style couvre chaque classe rendue', () => {
     '.wx-books',
     '.wx-book-meta',
     '.wx-source',
+    '.wx-credit',
     '.wx-state',
     '.wx-match'
   ];
@@ -206,6 +211,17 @@ test('showMatches affiche la barre de recherche a cote des candidats', async () 
   );
 });
 
+test('l accueil credite Wahapedia en pied de panneau', async () => {
+  const { shadow, panel } = await setup();
+
+  panel.showHome();
+
+  const credit = shadow.querySelector('.wx-home > .wx-credit');
+  assert.ok(credit, 'le credit doit etre present sur l accueil');
+  assert.equal(credit.lastElementChild, credit.querySelector('a'));
+  assert.equal(credit.querySelector('a').getAttribute('href'), 'https://wahapedia.ru/');
+});
+
 test('une saisie trop courte ne declenche aucune requete', async () => {
   const { shadow, panel, recherches } = await setup();
   panel.showMatches([]);
@@ -214,7 +230,7 @@ test('une saisie trop courte ne declenche aucune requete', async () => {
   await attendre(400);
 
   assert.deepEqual(recherches, [], 'aucune requete en deca du minimum');
-  assert.match(shadow.querySelector('.wx-home-message').textContent, /Au moins 4/);
+  assert.match(shadow.querySelector('.wx-home-message').textContent, /At least 4/);
 });
 
 test('une saisie suffisante declenche une requete et affiche les resultats', async () => {
@@ -244,7 +260,7 @@ test('les resultats sont plafonnes a cinq', async () => {
   await attendre(400);
 
   assert.equal(shadow.querySelectorAll('.wx-match').length, 5);
-  assert.match(shadow.querySelector('.wx-home-message').textContent, /5 premiers/);
+  assert.match(shadow.querySelector('.wx-home-message').textContent, /First 5 results/);
 });
 
 // Regression : deux requetes peuvent se chevaucher, et une reponse lente lancee
@@ -282,7 +298,7 @@ test('un echec de recherche laisse un message et ne casse pas le panneau', async
   tape(shadow, 'calgar');
   await attendre(400);
 
-  assert.match(shadow.querySelector('.wx-home-message').textContent, /impossible/);
+  assert.match(shadow.querySelector('.wx-home-message').textContent, /Search failed/);
 });
 
 test('le clavier ne remonte pas a la page hote, sauf Echap', async () => {

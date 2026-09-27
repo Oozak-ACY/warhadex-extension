@@ -1,9 +1,18 @@
 # Warhadex
 
-Quand vous consultez la page d'achat d'une figurine de personnage
-Warhammer 40 000 sur un site marchand pris en charge, Warhadex reconnait le
-personnage vendu et affiche, dans un panneau injecte sans quitter la page,
-ses statistiques de jeu, ses profils d'armes et ses regles. L'extension ne
+Quand vous consultez la page d'achat d'une figurine de jeu de figurines sur
+un site marchand pris en charge, Warhadex reconnait le personnage vendu et
+affiche, dans un panneau injecte sans quitter la page, ses statistiques de
+jeu, ses profils d'armes et ses regles. Le projet n'est pas lie a un jeu en
+particulier : Warhammer 40 000 est le premier pris en charge, d'autres (Star
+Wars Legion, Conquest...) pourront suivre selon ce que sert l'API. Les donnees
+actuelles proviennent de [Wahapedia](https://wahapedia.ru/), credite dans le
+panneau ("Powered by Wahapedia").
+
+L'interface est en anglais par defaut et traduite en francais : le navigateur
+choisit selon sa langue. Les textes vivent dans `src/_locales/<langue>/messages.json`
+et le code les lit avec `t()` (`src/core/i18n.js`). Toute nouvelle cle doit
+etre ajoutee dans chaque langue, ce que verifie `test/i18n.test.js`. L'extension ne
 contient elle-meme aucune base de regles : tout ce qui s'affiche provient de
 l'API que vous configurez vous-meme dans les reglages. Elle fonctionne sur
 Chrome, Firefox et Safari a partir d'une source unique, sans bundler ni

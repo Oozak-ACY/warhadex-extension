@@ -5,6 +5,9 @@ import { JSDOM } from 'jsdom';
 import { LOGOS } from '../src/content/panel/logos.js';
 import { createLauncher } from '../src/content/panel/launcher.js';
 import { createHome } from '../src/content/panel/render/home.js';
+import { installerI18n } from './helpers/i18n.js';
+
+installerI18n();
 
 const racine = new URL('../', import.meta.url);
 const lire = (chemin) => readFileSync(new URL(chemin, racine));
@@ -64,7 +67,7 @@ test('le lanceur affiche le logo en decoration sans changer son libelle', () => 
   const logo = bouton.querySelector('img');
   assert.equal(logo.getAttribute('src'), 'stub://assets/logo/tete-vert-56.png');
   assert.equal(logo.getAttribute('alt'), '');
-  assert.equal(bouton.textContent, 'Voir les regles');
+  assert.equal(bouton.textContent, 'View rules');
 });
 
 test('sans adresse de logo le lanceur reste un simple bouton texte', () => {

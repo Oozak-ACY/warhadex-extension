@@ -47,24 +47,61 @@ Note a donner au relecteur :
 
 ## Fiche
 
+L'extension est en anglais par defaut (`default_locale`) et traduite en
+francais. La fiche AMO suit : langue par defaut **English**, puis ajouter la
+traduction **Français** depuis le selecteur de langue de la fiche.
+
 **Nom** : Warhadex
 
-**Résumé** (250 caractères maximum) :
+### English (langue par defaut)
 
-> Affiche les caractéristiques, armes et aptitudes Warhammer 40,000 du
-> personnage sur les pages produit des boutiques de figurines.
+**Summary** (250 caracteres maximum) :
+
+> Shows the game stats, weapons and abilities of a miniature right on the
+> product pages of tabletop miniature stores.
 
 **Description** :
 
-> Warhadex détecte le personnage présenté sur une page produit et ouvre, d'un
-> clic, sa fiche de jeu Warhammer 40,000 (10e édition) : profils, sauvegarde
-> invulnérable, taille de socle, armes de tir et de mêlée, aptitudes et mots-clés.
+> Warhadex detects the miniature shown on a product page and opens its game
+> datasheet in one click: profiles, invulnerable save, base size, ranged and
+> melee weapons, abilities and keywords.
+>
+> Supported games: Warhammer 40,000 (10th edition) to start with, more tabletop
+> miniature games to come. Data powered by Wahapedia.
+>
+> Supported stores: warhammer.com, Element Games, Wayland Games and Philibert.
+> When detection is unsure, for example on a box holding several units, a name
+> search lets you pick the right datasheet.
+>
+> The interface is available in English and French.
+>
+> Warhadex is an unofficial fan tool, not affiliated with the publishers of the
+> games shown (Games Workshop, etc.) nor with Wahapedia.
+
+### Français
+
+**Résumé** :
+
+> Affiche les caractéristiques, armes et aptitudes de jeu d'une figurine sur
+> les pages produit des boutiques de jeux de figurines.
+
+**Description** :
+
+> Warhadex détecte la figurine présentée sur une page produit et ouvre, d'un
+> clic, sa fiche de jeu : profils, sauvegarde invulnérable, taille de socle,
+> armes de tir et de mêlée, aptitudes et mots-clés.
+>
+> Jeux pris en charge : Warhammer 40,000 (10e édition) pour commencer, d'autres
+> jeux de figurines suivront. Données fournies par Wahapedia.
 >
 > Boutiques prises en charge : warhammer.com, Element Games, Wayland Games et
 > Philibert. Si la détection hésite, par exemple sur une boîte contenant
 > plusieurs unités, une recherche par nom permet de choisir la bonne fiche.
 >
-> Warhadex est un outil de fan non officiel, sans lien avec Games Workshop.
+> L'interface est disponible en anglais et en français.
+>
+> Warhadex est un outil de fan non officiel, sans lien avec les éditeurs des
+> jeux présentés (Games Workshop, etc.) ni avec Wahapedia.
 
 **Catégorie** : Games & Entertainment (« Jeux et divertissement »)
 

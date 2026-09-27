@@ -1,3 +1,5 @@
+import { t } from '../../core/i18n.js';
+
 // memes valeurs que la palette heraldique de panel.css : le lanceur vit dans son
 // propre Shadow DOM et ne voit pas ses variables
 const STYLE = `
@@ -48,7 +50,7 @@ export function createLauncher({ doc, onClick, iconUrl }) {
     button.classList.add('wx-avec-logo');
     button.append(logo);
   }
-  button.append(doc.createTextNode('Voir les regles'));
+  button.append(doc.createTextNode(t('launcherLabel')));
   button.hidden = true;
   button.addEventListener('click', onClick);
 

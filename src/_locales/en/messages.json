@@ -1,0 +1,89 @@
+{
+  "extDescription": {
+    "message": "Shows the game stats, weapons and abilities of a miniature right on the product pages of tabletop miniature stores."
+  },
+  "launcherLabel": { "message": "View rules" },
+
+  "panelClose": { "message": "Close" },
+  "panelBack": { "message": "Back to search" },
+  "tabRules": { "message": "Rules" },
+  "tabLore": { "message": "Lore" },
+
+  "searchPlaceholder": { "message": "Search for a character" },
+  "searchPending": { "message": "Searching" },
+  "searchFailed": { "message": "Search failed" },
+  "searchNoResult": { "message": "No character with that name" },
+  "searchFirstResults": {
+    "message": "First $COUNT$ results",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "searchMinChars": {
+    "message": "At least $COUNT$ characters",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "stateNotFound": { "message": "No character found yet" },
+  "stateNotConfigured": { "message": "Access to the Warhadex API denied" },
+  "stateOffline": { "message": "The Warhadex API is unreachable" },
+  "stateAmbiguous": { "message": "Several characters match" },
+  "stateError": { "message": "Something went wrong while fetching the datasheet" },
+
+  "invulnerableSave": {
+    "message": "Invulnerable save $VALUE$",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "pointsModel": {
+    "message": "$COUNT$ model",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "pointsModels": {
+    "message": "$COUNT$ models",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "baseNone": { "message": "No base" },
+  "baseRound": {
+    "message": "$SIZE$mm base",
+    "placeholders": { "size": { "content": "$1" } }
+  },
+  "baseRoundFlying": {
+    "message": "$SIZE$mm flying base",
+    "placeholders": { "size": { "content": "$1" } }
+  },
+  "baseOval": {
+    "message": "$LENGTH$ x $WIDTH$mm oval base",
+    "placeholders": { "length": { "content": "$1" }, "width": { "content": "$2" } }
+  },
+  "baseOvalFlying": {
+    "message": "$LENGTH$ x $WIDTH$mm flying base",
+    "placeholders": { "length": { "content": "$1" }, "width": { "content": "$2" } }
+  },
+  "baseOther": {
+    "message": "Base: $BASE$",
+    "placeholders": { "base": { "content": "$1" } }
+  },
+
+  "weaponsRanged": { "message": "Ranged weapons" },
+  "weaponsMelee": { "message": "Melee weapons" },
+  "columnWeapon": { "message": "Weapon" },
+  "columnRange": { "message": "Range" },
+  "columnAttacks": { "message": "A" },
+  "columnSkill": { "message": "BS/WS" },
+  "columnStrength": { "message": "S" },
+  "columnPenetration": { "message": "AP" },
+  "columnDamage": { "message": "D" },
+  "columnKeywords": { "message": "Keywords" },
+
+  "abilitiesTitle": { "message": "Abilities" },
+  "keywordsTitle": { "message": "Keywords" },
+  "loreTitle": { "message": "Lore" },
+  "booksTitle": { "message": "Books" },
+  "sourceLabel": { "message": "Source:" },
+
+  "optionsTitle": { "message": "Warhadex options" },
+  "optionsCacheDays": { "message": "Cache duration in days" },
+  "optionsShowLauncher": { "message": "Enable Warhadex on product pages" },
+  "optionsSave": { "message": "Save" },
+  "optionsClearCache": { "message": "Clear cache" },
+  "optionsSaved": { "message": "Settings saved" },
+  "optionsCacheCleared": { "message": "Cache cleared" }
+}

@@ -9,6 +9,7 @@ import { renderSource } from './render/source.js';
 import { renderState } from './render/states.js';
 import { createHome } from './render/home.js';
 import { LOGOS } from './logos.js';
+import { t } from '../../core/i18n.js';
 
 async function loadStyles(doc) {
   const style = doc.createElement('style');
@@ -27,7 +28,7 @@ export async function createPanel({ doc, onSelect, onSearch }) {
   const shadow = host.attachShadow({ mode: 'open' });
 
   const root = el(doc, 'div', { class: 'wx-root', 'data-open': 'false' });
-  const close = el(doc, 'button', { class: 'wx-close', type: 'button', 'aria-label': 'Fermer' }, 'x');
+  const close = el(doc, 'button', { class: 'wx-close', type: 'button', 'aria-label': t('panelClose') }, 'x');
   const marque = el(
     doc,
     'div',
@@ -65,7 +66,7 @@ export async function createPanel({ doc, onSelect, onSearch }) {
   // l accueil n existe que si une detection a eu lieu sur cette page
   let accueilPret = false;
 
-  const retour = el(doc, 'button', { class: 'wx-back', type: 'button' }, 'Retour a la recherche');
+  const retour = el(doc, 'button', { class: 'wx-back', type: 'button' }, t('panelBack'));
   retour.addEventListener('click', () => showHome());
 
   function showSections(sections) {
@@ -140,8 +141,8 @@ export async function createPanel({ doc, onSelect, onSearch }) {
       ];
       const histoire = () => [renderLore(doc, character)];
 
-      const entries = [{ label: 'Regles', sections: regles }];
-      if (character.lore || character.books?.length) entries.push({ label: 'Histoire', sections: histoire });
+      const entries = [{ label: t('tabRules'), sections: regles }];
+      if (character.lore || character.books?.length) entries.push({ label: t('tabLore'), sections: histoire });
 
       // depuis une fiche on doit pouvoir revenir choisir, notamment sur une boite
       // contenant plusieurs types de figurines

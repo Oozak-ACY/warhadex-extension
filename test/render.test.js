@@ -9,6 +9,9 @@ import { renderLore } from '../src/content/panel/render/lore.js';
 import { renderSource } from '../src/content/panel/render/source.js';
 import { renderState } from '../src/content/panel/render/states.js';
 import { STATUS } from '../src/core/messages.js';
+import { installerI18n } from './helpers/i18n.js';
+
+installerI18n();
 
 const doc = new JSDOM('<!doctype html><body>').window.document;
 
@@ -52,13 +55,13 @@ test('renderDatasheet affiche les six caracteristiques et l invulnerable', () =>
 });
 
 test('libelleSocle traduit chaque forme servie par l API', () => {
-  assert.equal(libelleSocle('32mm'), 'Socle 32mm');
-  assert.equal(libelleSocle('90 x 52mm'), 'Socle ovale 90 x 52mm');
-  assert.equal(libelleSocle('120 x 92mm flying base'), 'Socle volant 120 x 92mm');
-  assert.equal(libelleSocle('60mm flying base'), 'Socle volant 60mm');
-  assert.equal(libelleSocle('Use model'), 'Sans socle');
-  assert.equal(libelleSocle('Large'), 'Socle Large');
-  assert.equal(libelleSocle('50mm', 'with pillar'), 'Socle 50mm (with pillar)');
+  assert.equal(libelleSocle('32mm'), '32mm base');
+  assert.equal(libelleSocle('90 x 52mm'), '90 x 52mm oval base');
+  assert.equal(libelleSocle('120 x 92mm flying base'), '120 x 92mm flying base');
+  assert.equal(libelleSocle('60mm flying base'), '60mm flying base');
+  assert.equal(libelleSocle('Use model'), 'No base');
+  assert.equal(libelleSocle('Large'), 'Base: Large');
+  assert.equal(libelleSocle('50mm', 'with pillar'), '50mm base (with pillar)');
   assert.equal(libelleSocle(null, 'orpheline'), null);
   assert.equal(libelleSocle(''), null);
 });
@@ -73,13 +76,13 @@ test('renderDatasheet affiche le socle de chaque profil et rien sans donnee', ()
     ]
   });
   const socles = [...node.querySelectorAll('.wx-profile')].map((p) => p.querySelector('.wx-base')?.textContent ?? null);
-  assert.deepEqual(socles, ['Socle 80mm', 'Socle 25mm', null]);
+  assert.deepEqual(socles, ['80mm base', '25mm base', null]);
 });
 
 test('renderWeapons separe les armes de tir et de melee', () => {
   const node = renderWeapons(doc, character.weapons);
   const titres = [...node.querySelectorAll('h3')].map((n) => n.textContent);
-  assert.deepEqual(titres, ['Armes de tir', 'Armes de melee']);
+  assert.deepEqual(titres, ['Ranged weapons', 'Melee weapons']);
   assert.equal(node.querySelectorAll('tbody tr').length, 2);
 });
 
@@ -124,9 +127,22 @@ test('renderLore refuse une url javascript et retombe sur un span', () => {
   assert.match(node.textContent, /Roman/);
 });
 
-test('renderSource retourne null quand la fiche ne porte aucune source', () => {
-  assert.equal(renderSource(doc, character), null);
-  assert.equal(renderSource(doc, { ...character, source: {} }), null);
+test('renderSource sans source sur la fiche ne garde que le credit Wahapedia', () => {
+  for (const fiche of [character, { ...character, source: {} }]) {
+    const node = renderSource(doc, fiche);
+    assert.doesNotMatch(node.textContent, /Source/);
+    assert.equal(node.querySelector('.wx-credit a').getAttribute('href'), 'https://wahapedia.ru/');
+  }
+});
+
+test('renderSource credite Wahapedia sous la source', () => {
+  const node = renderSource(doc, {
+    ...character,
+    source: { label: 'Codex factice', url: 'https://example.com/codex' }
+  });
+  const credit = node.querySelector('.wx-credit');
+  assert.equal(credit.textContent, 'Powered by Wahapedia');
+  assert.equal(credit.querySelector('a').getAttribute('rel'), 'noopener noreferrer');
 });
 
 test('renderSource transforme une url https en lien cliquable', () => {
@@ -134,7 +150,7 @@ test('renderSource transforme une url https en lien cliquable', () => {
     ...character,
     source: { label: 'Codex factice', url: 'https://example.com/codex' }
   });
-  const lien = node.querySelector('a');
+  const lien = node.querySelector('.wx-source-line a');
   assert.ok(lien, 'aucun lien genere pour une url https');
   assert.equal(lien.getAttribute('href'), 'https://example.com/codex');
   assert.equal(lien.getAttribute('rel'), 'noopener noreferrer');
@@ -147,13 +163,13 @@ test('renderSource refuse une url javascript et retombe sur du texte', () => {
     ...character,
     source: { label: 'Codex factice', url: 'javascript:alert(1)' }
   });
-  assert.equal(node.querySelector('a'), null, 'un lien ne doit jamais porter un href javascript:');
+  assert.equal(node.querySelector('.wx-source-line a'), null, 'un lien ne doit jamais porter un href javascript:');
   assert.match(node.textContent, /Codex factice/);
 });
 
 test('renderSource affiche l url quand le libelle manque', () => {
   const node = renderSource(doc, { ...character, source: { url: 'https://example.com/codex' } });
-  assert.equal(node.querySelector('a').textContent, 'https://example.com/codex');
+  assert.equal(node.querySelector('.wx-source-line a').textContent, 'https://example.com/codex');
 });
 
 test('renderState produit un message par statut', () => {
@@ -194,8 +210,8 @@ test('renderDatasheet accorde le pluriel des paliers de cout', () => {
     ]
   });
   const texte = node.querySelector('.wx-points').textContent;
-  assert.match(texte, /1 figurine 140 pts/);
-  assert.match(texte, /5 figurines 80 pts/);
+  assert.match(texte, /1 model 140 pts/);
+  assert.match(texte, /5 models 80 pts/);
 });
 
 test('renderDatasheet retombe sur le libelle brut quand le nombre est illisible', () => {
@@ -258,7 +274,7 @@ test('renderWeapons garde l ordre de colonnes dont depend le style en registre',
   for (const tableau of node.querySelectorAll('table')) {
     assert.deepEqual(
       [...tableau.querySelectorAll('thead th')].map((n) => n.textContent),
-      ['Arme', 'Portee', 'A', 'CT/CC', 'F', 'PA', 'D', 'Mots cles']
+      ['Weapon', 'Range', 'A', 'BS/WS', 'S', 'AP', 'D', 'Keywords']
     );
     for (const ligne of tableau.querySelectorAll('tbody tr')) {
       assert.equal(ligne.children.length, 8, 'chaque ligne doit porter les huit cellules');

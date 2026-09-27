@@ -318,6 +318,26 @@ details.wx-ability[open] > summary::before {
   padding-top: 8px;
 }
 
+.wx-source-line {
+  margin: 0 0 4px;
+}
+
+.wx-credit {
+  color: var(--wx-encre-2);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.wx-credit a {
+  color: var(--wx-gueules);
+}
+
+.wx-home .wx-credit {
+  margin-top: 24px;
+  text-align: center;
+}
+
 .wx-state {
   color: var(--wx-encre-2);
   padding: 24px 0;

@@ -2,6 +2,9 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { MSG, STATUS } from '../src/core/messages.js';
+import { installerI18n } from './helpers/i18n.js';
+
+installerI18n();
 
 // main.js reads the ambient document/window/location, as it does in a real content
 // script. We stand those up with jsdom and stub browser + fetch before importing it.
@@ -191,7 +194,7 @@ test('une page produit sans personnage reconnu le dit au lieu de rester muette',
   await start();
 
   assert.equal(findLauncherButton().hidden, false, 'le lanceur reste ouvrable');
-  assert.match(panelText(), /Aucun personnage trouve/);
+  assert.match(panelText(), /No character found/);
 });
 
 // Regression: a sendMessage rejection (sleeping service worker, invalidated context)
@@ -222,7 +225,7 @@ test('un rejet de sendMessage affiche l erreur, laisse le lanceur ouvrable et pe
   );
   assert.equal(
     findPanelShadow().querySelector('.wx-state')?.textContent,
-    'Une erreur est survenue lors de la recuperation de la fiche',
+    'Something went wrong while fetching the datasheet',
     'le panneau doit afficher l etat erreur'
   );
 
@@ -312,7 +315,7 @@ test('un statut not-configured laisse le lanceur ouvrable et efface le garde-fou
   assert.equal(calls.length, 1);
   assert.equal(findLauncherButton().hidden, false, 'le message de configuration doit etre atteignable');
   // la cle est integree : l utilisateur n a rien a regler, le message dit seulement que l acces est refuse
-  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /Acces a l API Warhadex refuse/);
+  assert.match(findPanelShadow().querySelector('.wx-state').textContent, /Access to the Warhadex API denied/);
 
   doc.defaultView.history.pushState({}, '', '/autre-chemin');
   await wait(550);
@@ -389,7 +392,7 @@ test('un rejet de sendMessage dans ouvrirFiche affiche l etat erreur', async () 
 
   assert.equal(
     shadow.querySelector('.wx-state')?.textContent,
-    'Une erreur est survenue lors de la recuperation de la fiche',
+    'Something went wrong while fetching the datasheet',
     'le panneau doit afficher l etat erreur apres le rejet'
   );
 });
